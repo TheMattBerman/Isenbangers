@@ -22,8 +22,7 @@ import {
   PANEL_COUNT,
   BULB_COUNT,
   buildSegmentPath,
-  getPanelIndexFromAngle,
-  isRarePanel,
+  RARE_PANEL_INDEXES,
 } from "../utils/spinWheelMath";
 
 const { width } = Dimensions.get("window");
@@ -41,6 +40,7 @@ export default function SpinWheel({ onSpinComplete, isSpinning }: SpinWheelProps
   const localSpinningRef = useRef(false);
 
   const panelAngle = 360 / PANEL_COUNT;
+  const RARE_INDEXES = RARE_PANEL_INDEXES;
 
   // Create stable function references for worklet usage
   const handleHapticFeedback = useCallback(() => {
@@ -99,10 +99,12 @@ export default function SpinWheel({ onSpinComplete, isSpinning }: SpinWheelProps
     rotation.value = withTiming(targetDeg, { duration: 2600, easing }, (finished) => {
       'worklet';
       if (!finished) return;
-      const index = getPanelIndexFromAngle(targetDeg, PANEL_COUNT);
-      const rare = isRarePanel(index);
+      // Compute panel index and rarity inside worklet
+      const angle = (450 - (targetDeg % 360)) % 360;
+      const seg = 360 / PANEL_COUNT;
+      const index = Math.floor(angle / seg) % PANEL_COUNT;
+      const rare = RARE_INDEXES.indexOf(index) !== -1;
       
-      // Call stable function references on JS thread
       runOnJS(handleHapticFeedback)();
       runOnJS(handleSpinComplete)(rare);
     });
