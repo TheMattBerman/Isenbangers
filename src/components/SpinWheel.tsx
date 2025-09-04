@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from "react";
+import React, { useMemo, useRef, useCallback } from "react";
 import { View, Pressable, Text, Dimensions } from "react-native";
 import Animated, {
   useSharedValue,
@@ -41,6 +41,16 @@ export default function SpinWheel({ onSpinComplete, isSpinning }: SpinWheelProps
   const localSpinningRef = useRef(false);
 
   const panelAngle = 360 / PANEL_COUNT;
+
+  // Create stable function references for worklet usage
+  const handleHapticFeedback = useCallback(() => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  }, []);
+
+  const handleSpinComplete = useCallback((rare: boolean) => {
+    localSpinningRef.current = false;
+    onSpinComplete(rare);
+  }, [onSpinComplete]);
 
   const segments = useMemo(() => {
     const cx = RADIUS;
@@ -92,14 +102,9 @@ export default function SpinWheel({ onSpinComplete, isSpinning }: SpinWheelProps
       const index = getPanelIndexFromAngle(targetDeg, PANEL_COUNT);
       const rare = isRarePanel(index);
       
-      // Reset local spinning state
-      localSpinningRef.current = false;
-      
-      // Call haptics and completion callback on JS thread
-      runOnJS(() => {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      })();
-      runOnJS(onSpinComplete)(rare);
+      // Call stable function references on JS thread
+      runOnJS(handleHapticFeedback)();
+      runOnJS(handleSpinComplete)(rare);
     });
   };
 
