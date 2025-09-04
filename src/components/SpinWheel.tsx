@@ -1,10 +1,9 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useRef } from "react";
 import { View, Pressable, Text, Dimensions } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  withSequence,
   runOnJS,
   Easing,
 } from "react-native-reanimated";
@@ -39,6 +38,7 @@ interface SpinWheelProps {
 
 export default function SpinWheel({ onSpinComplete, isSpinning }: SpinWheelProps) {
   const rotation = useSharedValue(0);
+  const localSpinningRef = useRef(false);
 
   const panelAngle = 360 / PANEL_COUNT;
 
@@ -74,24 +74,33 @@ export default function SpinWheel({ onSpinComplete, isSpinning }: SpinWheelProps
     } as any;
   });
 
+  const notifySuccess = () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  };
+  const clearLocalSpinning = () => {
+    localSpinningRef.current = false;
+  };
+
   const spin = () => {
-    if (isSpinning) return;
+    if (isSpinning || localSpinningRef.current) return;
+    localSpinningRef.current = true;
 
     const turns = 3 + Math.random() * 1.5; // 3 to 4.5 turns
     const targetPanel = Math.floor(Math.random() * PANEL_COUNT);
     const panelCenter = targetPanel * panelAngle + panelAngle / 2;
-    const targetDeg = turns * 360 + panelCenter;
+    const base = rotation.value % 360;
+    const targetDeg = base + turns * 360 + panelCenter;
 
     const easing = Easing.bezier(0.1, 0.8, 0.3, 1);
 
-    rotation.value = withSequence(
-      withTiming(targetDeg, { duration: 2600, easing }, () => {
-        const index = getPanelIndexFromAngle(targetDeg, PANEL_COUNT);
-        const rare = isRarePanel(index);
-        runOnJS(Haptics.notificationAsync)(Haptics.NotificationFeedbackType.Success);
-        runOnJS(onSpinComplete)(rare);
-      })
-    );
+    rotation.value = withTiming(targetDeg, { duration: 2600, easing }, (finished) => {
+      if (!finished) return;
+      const index = getPanelIndexFromAngle(targetDeg, PANEL_COUNT);
+      const rare = isRarePanel(index);
+      runOnJS(notifySuccess)();
+      runOnJS(clearLocalSpinning)();
+      runOnJS(onSpinComplete)(rare);
+    });
   };
 
   // Colors
@@ -177,7 +186,7 @@ export default function SpinWheel({ onSpinComplete, isSpinning }: SpinWheelProps
       {/* Spin Button */}
       <Pressable
         onPress={spin}
-        disabled={isSpinning}
+        disabled={isSpinning || localSpinningRef.current}
         style={{
           marginTop: 20,
           paddingHorizontal: 28,
@@ -185,12 +194,12 @@ export default function SpinWheel({ onSpinComplete, isSpinning }: SpinWheelProps
           borderRadius: 9999,
           flexDirection: "row",
           alignItems: "center",
-          backgroundColor: isSpinning ? "#9ca3af" : "#f97316",
+          backgroundColor: isSpinning || localSpinningRef.current ? "#9ca3af" : "#f97316",
         }}
       >
         <Ionicons name="refresh" size={22} color="white" />
         <Text style={{ color: "white", fontWeight: "700", fontSize: 16, marginLeft: 8 }}>
-          {isSpinning ? "Spinning..." : "Spin"}
+          {isSpinning || localSpinningRef.current ? "Spinning..." : "Spin"}
         </Text>
       </Pressable>
     </View>
