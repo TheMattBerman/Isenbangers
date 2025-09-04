@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Pressable, Text, Dimensions } from "react-native";
 import Animated, {
   useSharedValue,
@@ -6,13 +6,31 @@ import Animated, {
   withTiming,
   withSequence,
   runOnJS,
+  Easing,
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
-import Svg, { Circle, Path, Text as SvgText } from "react-native-svg";
+import {
+  Canvas,
+  Path,
+  Circle,
+  Group,
+  SweepGradient,
+  vec,
+  BlurMask,
+} from "@shopify/react-native-skia";
+import * as Haptics from "expo-haptics";
+import {
+  PANEL_COUNT,
+  BULB_COUNT,
+  buildSegmentPath,
+  getPanelIndexFromAngle,
+  isRarePanel,
+} from "../utils/spinWheelMath";
 
 const { width } = Dimensions.get("window");
-const WHEEL_SIZE = width * 0.8;
+const WHEEL_SIZE = Math.min(width * 0.9, 360);
 const RADIUS = WHEEL_SIZE / 2;
+const INNER_RADIUS = RADIUS * 0.55;
 
 interface SpinWheelProps {
   onSpinComplete: (isRare: boolean) => void;
@@ -21,181 +39,158 @@ interface SpinWheelProps {
 
 export default function SpinWheel({ onSpinComplete, isSpinning }: SpinWheelProps) {
   const rotation = useSharedValue(0);
-  
-  const segments = [
-    { label: "Regular", color: "#3b82f6", isRare: false },
-    { label: "Rare", color: "#fbbf24", isRare: true },
-    { label: "Regular", color: "#10b981", isRare: false },
-    { label: "Regular", color: "#8b5cf6", isRare: false },
-    { label: "Regular", color: "#ef4444", isRare: false },
-    { label: "Regular", color: "#f97316", isRare: false },
-  ];
+
+  const panelAngle = 360 / PANEL_COUNT;
+
+  const segments = useMemo(() => {
+    const cx = RADIUS;
+    const cy = RADIUS;
+    return new Array(PANEL_COUNT).fill(0).map((_, i) => {
+      const start = i * panelAngle - 90; // start from top
+      const end = start + panelAngle;
+      const path = buildSegmentPath(cx, cy, INNER_RADIUS, RADIUS * 0.95, start, end);
+      return { path, index: i };
+    });
+  }, [panelAngle]);
+
+  const bulbs = useMemo(() => {
+    const cx = RADIUS;
+    const cy = RADIUS;
+    const outer = RADIUS * 0.98;
+    return new Array(BULB_COUNT).fill(0).map((_, i) => {
+      const angle = i * (360 / BULB_COUNT) - 90;
+      const a = (angle * Math.PI) / 180;
+      return { x: cx + outer * Math.cos(a), y: cy + outer * Math.sin(a) };
+    });
+  }, []);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
-      transform: [{ rotate: `${rotation.value}deg` }],
-    };
+      transform: [
+        { perspective: 900 },
+        { rotateX: "18deg" },
+        { rotate: `${rotation.value}deg` },
+      ],
+    } as any;
   });
 
   const spin = () => {
     if (isSpinning) return;
 
-    const randomRotation = Math.random() * 360 + 1440; // At least 4 full rotations
-    const finalAngle = randomRotation % 360;
-    const segmentAngle = 360 / segments.length;
-    const selectedSegmentIndex = Math.floor((360 - finalAngle) / segmentAngle) % segments.length;
-    const selectedSegment = segments[selectedSegmentIndex];
+    const turns = 3 + Math.random() * 1.5; // 3 to 4.5 turns
+    const targetPanel = Math.floor(Math.random() * PANEL_COUNT);
+    const panelCenter = targetPanel * panelAngle + panelAngle / 2;
+    const targetDeg = turns * 360 + panelCenter;
+
+    const easing = Easing.bezier(0.1, 0.8, 0.3, 1);
 
     rotation.value = withSequence(
-      withTiming(randomRotation, { duration: 3000 }),
-      withTiming(randomRotation, { duration: 0 }, () => {
-        runOnJS(onSpinComplete)(selectedSegment.isRare);
+      withTiming(targetDeg, { duration: 2600, easing }, () => {
+        const index = getPanelIndexFromAngle(targetDeg, PANEL_COUNT);
+        const rare = isRarePanel(index);
+        runOnJS(Haptics.notificationAsync)(Haptics.NotificationFeedbackType.Success);
+        runOnJS(onSpinComplete)(rare);
       })
     );
   };
 
-  const renderWheel = () => {
-    const segmentAngle = 360 / segments.length;
-    
-    try {
-      return (
-        <Svg width={WHEEL_SIZE} height={WHEEL_SIZE}>
-          {segments.map((segment, index) => {
-            const startAngle = (index * segmentAngle - 90) * (Math.PI / 180);
-            const endAngle = ((index + 1) * segmentAngle - 90) * (Math.PI / 180);
-            
-            const x1 = RADIUS + (RADIUS - 20) * Math.cos(startAngle);
-            const y1 = RADIUS + (RADIUS - 20) * Math.sin(startAngle);
-            const x2 = RADIUS + (RADIUS - 20) * Math.cos(endAngle);
-            const y2 = RADIUS + (RADIUS - 20) * Math.sin(endAngle);
-            
-            const largeArcFlag = segmentAngle > 180 ? 1 : 0;
-            
-            const pathData = [
-              `M ${RADIUS} ${RADIUS}`,
-              `L ${x1} ${y1}`,
-              `A ${RADIUS - 20} ${RADIUS - 20} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
-              "Z"
-            ].join(" ");
-
-            const textAngle = (index * segmentAngle + segmentAngle / 2 - 90) * (Math.PI / 180);
-            const textX = RADIUS + (RADIUS - 60) * Math.cos(textAngle);
-            const textY = RADIUS + (RADIUS - 60) * Math.sin(textAngle);
-
-            return (
-              <React.Fragment key={index}>
-                <Path d={pathData} fill={segment.color} stroke="#fff" strokeWidth="2" />
-                <SvgText
-                  x={textX}
-                  y={textY}
-                  fill="white"
-                  fontSize="14"
-                  fontWeight="bold"
-                  textAnchor="middle"
-                  alignmentBaseline="middle"
-                >
-                  {segment.label}
-                </SvgText>
-              </React.Fragment>
-            );
-          })}
-          
-          {/* Center circle */}
-          <Circle cx={RADIUS} cy={RADIUS} r="30" fill="#1f2937" stroke="#fff" strokeWidth="3" />
-        </Svg>
-      );
-    } catch (error) {
-      // Fallback wheel if SVG fails
-      return (
-        <View
-          style={{
-            width: WHEEL_SIZE,
-            height: WHEEL_SIZE,
-            borderRadius: WHEEL_SIZE / 2,
-            backgroundColor: '#f97316',
-            justifyContent: 'center',
-            alignItems: 'center',
-            borderWidth: 4,
-            borderColor: 'white',
-          }}
-        >
-          <Text style={{ color: 'white', fontSize: 18, fontWeight: 'bold' }}>
-            🎯
-          </Text>
-          <Text style={{ color: 'white', fontSize: 14, textAlign: 'center', marginTop: 8 }}>
-            Spin Wheel
-          </Text>
-        </View>
-      );
-    }
-  };
+  // Colors
+  const rimOuter = "#1f2937";
+  const rimInner = "#111827";
+  const panelStart = "#2a2e6e";
+  const panelEnd = "#3b46a0";
 
   return (
-    <View 
-      className="items-center"
-      style={{
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '100%',
-      }}
-    >
+    <View style={{ width: WHEEL_SIZE, alignItems: "center" }}>
       {/* Pointer */}
-      <View 
-        className="absolute top-0 z-10" 
-        style={{ 
-          position: 'absolute',
-          top: -10,
+      <View
+        style={{
+          position: "absolute",
+          top: -8,
           zIndex: 10,
-          alignItems: 'center',
+          alignItems: "center",
         }}
       >
-        <View 
+        <View
           style={{
             width: 0,
             height: 0,
-            borderLeftWidth: 15,
-            borderRightWidth: 15,
-            borderBottomWidth: 30,
-            borderLeftColor: 'transparent',
-            borderRightColor: 'transparent',
-            borderBottomColor: '#ef4444',
+            borderLeftWidth: 14,
+            borderRightWidth: 14,
+            borderBottomWidth: 28,
+            borderLeftColor: "transparent",
+            borderRightColor: "transparent",
+            borderBottomColor: "#9ca3af",
+            shadowColor: "#000",
+            shadowOpacity: 0.25,
+            shadowRadius: 6,
+            shadowOffset: { width: 0, height: 3 },
+            elevation: 6,
           }}
         />
       </View>
-      
+
       {/* Wheel */}
-      <Animated.View style={[animatedStyle, { marginTop: 20 }]}>
-        {renderWheel()}
+      <Animated.View style={[{ width: WHEEL_SIZE, height: WHEEL_SIZE }, animatedStyle]}>
+        <Canvas style={{ width: WHEEL_SIZE, height: WHEEL_SIZE }}>
+          {/* Rim */}
+          <Group>
+            <Circle cx={RADIUS} cy={RADIUS} r={RADIUS} color={rimOuter} />
+            <Circle cx={RADIUS} cy={RADIUS} r={RADIUS * 0.92} color={rimInner} />
+          </Group>
+
+          {/* Panels */}
+          {segments.map(({ path, index }) => (
+            <Group key={index}>
+              <Path path={path} color={panelEnd}>
+                <SweepGradient
+                  c={vec(RADIUS, RADIUS)}
+                  colors={[panelStart, panelEnd]}
+                  positions={[0, 1]}
+                />
+              </Path>
+              {/* highlight arc */}
+              <Path path={path} color="rgba(255,255,255,0.06)" />
+            </Group>
+          ))}
+
+          {/* Bulbs */}
+          <Group>
+            {bulbs.map((b, i) => (
+              <Group key={i}>
+                <Circle cx={b.x} cy={b.y} r={5} color="#fbbf24">
+                  <BlurMask blur={8} style="normal" />
+                </Circle>
+                <Circle cx={b.x} cy={b.y} r={3} color="#fde68a" />
+              </Group>
+            ))}
+          </Group>
+
+          {/* Center hub */}
+          <Group>
+            <Circle cx={RADIUS} cy={RADIUS} r={INNER_RADIUS * 0.6} color="#0b0f19" />
+            <Circle cx={RADIUS} cy={RADIUS} r={INNER_RADIUS * 0.45} color="#111827" />
+          </Group>
+        </Canvas>
       </Animated.View>
-      
+
       {/* Spin Button */}
       <Pressable
         onPress={spin}
         disabled={isSpinning}
         style={{
-          marginTop: 32,
-          paddingHorizontal: 32,
-          paddingVertical: 16,
-          borderRadius: 16,
-          flexDirection: 'row',
-          alignItems: 'center',
-          backgroundColor: isSpinning ? '#9ca3af' : '#f97316',
+          marginTop: 20,
+          paddingHorizontal: 28,
+          paddingVertical: 14,
+          borderRadius: 9999,
+          flexDirection: "row",
+          alignItems: "center",
+          backgroundColor: isSpinning ? "#9ca3af" : "#f97316",
         }}
       >
-        <Ionicons 
-          name="refresh" 
-          size={24} 
-          color="white" 
-        />
-        <Text 
-          style={{
-            color: 'white',
-            fontWeight: 'bold',
-            fontSize: 18,
-            marginLeft: 8,
-          }}
-        >
-          {isSpinning ? "Spinning..." : "Spin the Wheel!"}
+        <Ionicons name="refresh" size={22} color="white" />
+        <Text style={{ color: "white", fontWeight: "700", fontSize: 16, marginLeft: 8 }}>
+          {isSpinning ? "Spinning..." : "Spin"}
         </Text>
       </Pressable>
     </View>
