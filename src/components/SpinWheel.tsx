@@ -74,13 +74,6 @@ export default function SpinWheel({ onSpinComplete, isSpinning }: SpinWheelProps
     } as any;
   });
 
-  const notifySuccess = () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-  };
-  const clearLocalSpinning = () => {
-    localSpinningRef.current = false;
-  };
-
   const spin = () => {
     if (isSpinning || localSpinningRef.current) return;
     localSpinningRef.current = true;
@@ -94,11 +87,18 @@ export default function SpinWheel({ onSpinComplete, isSpinning }: SpinWheelProps
     const easing = Easing.bezier(0.1, 0.8, 0.3, 1);
 
     rotation.value = withTiming(targetDeg, { duration: 2600, easing }, (finished) => {
+      'worklet';
       if (!finished) return;
       const index = getPanelIndexFromAngle(targetDeg, PANEL_COUNT);
       const rare = isRarePanel(index);
-      runOnJS(notifySuccess)();
-      runOnJS(clearLocalSpinning)();
+      
+      // Reset local spinning state
+      localSpinningRef.current = false;
+      
+      // Call haptics and completion callback on JS thread
+      runOnJS(() => {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      })();
       runOnJS(onSpinComplete)(rare);
     });
   };
