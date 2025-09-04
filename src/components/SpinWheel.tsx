@@ -8,6 +8,7 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import {
   Canvas,
   Path,
@@ -37,6 +38,8 @@ interface SpinWheelProps {
 
 export default function SpinWheel({ onSpinComplete, isSpinning }: SpinWheelProps) {
   const rotation = useSharedValue(0);
+  const savedRotationDeg = useSharedValue(0);
+  const spinning = useSharedValue(0);
   const localSpinningRef = useRef(false);
 
   const panelAngle = 360 / PANEL_COUNT;
@@ -51,6 +54,10 @@ export default function SpinWheel({ onSpinComplete, isSpinning }: SpinWheelProps
     localSpinningRef.current = false;
     onSpinComplete(rare);
   }, [onSpinComplete]);
+
+  const setLocalSpinTrue = useCallback(() => {
+    localSpinningRef.current = true;
+  }, []);
 
   const segments = useMemo(() => {
     const cx = RADIUS;
@@ -87,6 +94,7 @@ export default function SpinWheel({ onSpinComplete, isSpinning }: SpinWheelProps
   const spin = () => {
     if (isSpinning || localSpinningRef.current) return;
     localSpinningRef.current = true;
+    spinning.value = 1;
 
     const turns = 3 + Math.random() * 1.5; // 3 to 4.5 turns
     const targetPanel = Math.floor(Math.random() * PANEL_COUNT);
@@ -97,13 +105,14 @@ export default function SpinWheel({ onSpinComplete, isSpinning }: SpinWheelProps
     const easing = Easing.bezier(0.1, 0.8, 0.3, 1);
 
     rotation.value = withTiming(targetDeg, { duration: 2600, easing }, (finished) => {
-      'worklet';
+      "worklet";
       if (!finished) return;
       // Compute panel index and rarity inside worklet
       const angle = (450 - (targetDeg % 360)) % 360;
       const seg = 360 / PANEL_COUNT;
       const index = Math.floor(angle / seg) % PANEL_COUNT;
       const rare = RARE_INDEXES.indexOf(index) !== -1;
+      spinning.value = 0;
       
       runOnJS(handleHapticFeedback)();
       runOnJS(handleSpinComplete)(rare);
@@ -115,6 +124,44 @@ export default function SpinWheel({ onSpinComplete, isSpinning }: SpinWheelProps
   const rimInner = "#111827";
   const panelStart = "#2a2e6e";
   const panelEnd = "#3b46a0";
+
+  // Gesture: two-finger rotation to pre-rotate and start spin on release
+  const rotationGesture = Gesture.Rotation()
+    .onStart(() => {
+      "worklet";
+      if (spinning.value === 1) return;
+      savedRotationDeg.value = rotation.value % 360;
+    })
+    .onUpdate((e) => {
+      "worklet";
+      if (spinning.value === 1) return;
+      rotation.value = savedRotationDeg.value + (e.rotation * 180) / Math.PI;
+    })
+    .onEnd(() => {
+      "worklet";
+      if (spinning.value === 1) return;
+      spinning.value = 1;
+      runOnJS(setLocalSpinTrue)();
+
+      const turns = 3 + Math.random() * 1.5;
+      const targetPanel = Math.floor(Math.random() * PANEL_COUNT);
+      const panelCenter = targetPanel * panelAngle + panelAngle / 2;
+      const base = rotation.value % 360;
+      const targetDeg = base + turns * 360 + panelCenter;
+      const easing = Easing.bezier(0.1, 0.8, 0.3, 1);
+
+      rotation.value = withTiming(targetDeg, { duration: 2600, easing }, (finished) => {
+        "worklet";
+        if (!finished) return;
+        const angle = (450 - (targetDeg % 360)) % 360;
+        const seg = 360 / PANEL_COUNT;
+        const index = Math.floor(angle / seg) % PANEL_COUNT;
+        const rare = RARE_INDEXES.indexOf(index) !== -1;
+        spinning.value = 0;
+        runOnJS(handleHapticFeedback)();
+        runOnJS(handleSpinComplete)(rare);
+      });
+    });
 
   return (
     <View style={{ width: WHEEL_SIZE, alignItems: "center" }}>
@@ -147,48 +194,50 @@ export default function SpinWheel({ onSpinComplete, isSpinning }: SpinWheelProps
       </View>
 
       {/* Wheel */}
-      <Animated.View style={[{ width: WHEEL_SIZE, height: WHEEL_SIZE }, animatedStyle]}>
-        <Canvas style={{ width: WHEEL_SIZE, height: WHEEL_SIZE }}>
-          {/* Rim */}
-          <Group>
-            <Circle cx={RADIUS} cy={RADIUS} r={RADIUS} color={rimOuter} />
-            <Circle cx={RADIUS} cy={RADIUS} r={RADIUS * 0.92} color={rimInner} />
-          </Group>
-
-          {/* Panels */}
-          {segments.map(({ path, index }) => (
-            <Group key={index}>
-              <Path path={path} color={panelEnd}>
-                <SweepGradient
-                  c={vec(RADIUS, RADIUS)}
-                  colors={[panelStart, panelEnd]}
-                  positions={[0, 1]}
-                />
-              </Path>
-              {/* highlight arc */}
-              <Path path={path} color="rgba(255,255,255,0.06)" />
+      <GestureDetector gesture={rotationGesture}>
+        <Animated.View style={[{ width: WHEEL_SIZE, height: WHEEL_SIZE }, animatedStyle]}>
+          <Canvas style={{ width: WHEEL_SIZE, height: WHEEL_SIZE }}>
+            {/* Rim */}
+            <Group>
+              <Circle cx={RADIUS} cy={RADIUS} r={RADIUS} color={rimOuter} />
+              <Circle cx={RADIUS} cy={RADIUS} r={RADIUS * 0.92} color={rimInner} />
             </Group>
-          ))}
 
-          {/* Bulbs */}
-          <Group>
-            {bulbs.map((b, i) => (
-              <Group key={i}>
-                <Circle cx={b.x} cy={b.y} r={5} color="#fbbf24">
-                  <BlurMask blur={8} style="normal" />
-                </Circle>
-                <Circle cx={b.x} cy={b.y} r={3} color="#fde68a" />
+            {/* Panels */}
+            {segments.map(({ path, index }) => (
+              <Group key={index}>
+                <Path path={path} color={panelEnd}>
+                  <SweepGradient
+                    c={vec(RADIUS, RADIUS)}
+                    colors={[panelStart, panelEnd]}
+                    positions={[0, 1]}
+                  />
+                </Path>
+                {/* highlight arc */}
+                <Path path={path} color="rgba(255,255,255,0.06)" />
               </Group>
             ))}
-          </Group>
 
-          {/* Center hub */}
-          <Group>
-            <Circle cx={RADIUS} cy={RADIUS} r={INNER_RADIUS * 0.6} color="#0b0f19" />
-            <Circle cx={RADIUS} cy={RADIUS} r={INNER_RADIUS * 0.45} color="#111827" />
-          </Group>
-        </Canvas>
-      </Animated.View>
+            {/* Bulbs */}
+            <Group>
+              {bulbs.map((b, i) => (
+                <Group key={i}>
+                  <Circle cx={b.x} cy={b.y} r={5} color="#fbbf24">
+                    <BlurMask blur={8} style="normal" />
+                  </Circle>
+                  <Circle cx={b.x} cy={b.y} r={3} color="#fde68a" />
+                </Group>
+              ))}
+            </Group>
+
+            {/* Center hub */}
+            <Group>
+              <Circle cx={RADIUS} cy={RADIUS} r={INNER_RADIUS * 0.6} color="#0b0f19" />
+              <Circle cx={RADIUS} cy={RADIUS} r={INNER_RADIUS * 0.45} color="#111827" />
+            </Group>
+          </Canvas>
+        </Animated.View>
+      </GestureDetector>
 
       {/* Spin Button */}
       <Pressable

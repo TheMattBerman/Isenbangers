@@ -163,7 +163,8 @@ export default function SpinWheelScreen() {
                     fontSize: 12,
                   }}
                 >
-                  Spin the wheel to discover random bangers! 
+                  Spin the wheel to discover random bangers!
+                  {"\n"}Rotate with your fingers or tap Spin.
                   {"\n"}Yellow segments give you rare bangers! ⭐
                 </Text>
               </View>
