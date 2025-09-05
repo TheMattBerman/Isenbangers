@@ -40,10 +40,18 @@ interface SpinWheelProps {
   isSpinning: boolean;
   onSpinStart?: () => void;
   sections?: SpinSection[];
+  size?: number; // override wheel diameter
+  showButton?: boolean; // show internal spin button
 }
 
 export type SpinWheelHandle = { startSpin: () => void; isBusy: () => boolean };
-const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete, isSpinning, onSpinStart, sections = getDefaultSpinSections() }, ref) => {
+const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete, isSpinning, onSpinStart, sections = getDefaultSpinSections(), size, showButton = true }, ref) => {
+  // Dimensions based on prop size
+  const screenW = width;
+  const WHEEL_SIZE = size ?? Math.min(screenW * 1.2, 480);
+  const RADIUS = WHEEL_SIZE / 2;
+  const INNER_RADIUS = RADIUS * 0.55;
+
   const rotation = useSharedValue(0);
   const savedRotationDeg = useSharedValue(0);
   const startAngleDeg = useSharedValue(0);
@@ -80,7 +88,7 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
       const path = buildSegmentPath(cx, cy, INNER_RADIUS, RADIUS * 0.95, start, end);
       return { path, index: i };
     });
-  }, [panelAngle]);
+  }, [panelAngle, RADIUS, INNER_RADIUS]);
 
   const [highlightIdx, setHighlightIdx] = useState<number | null>(null);
 
@@ -103,7 +111,7 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
       const a = (angle * Math.PI) / 180;
       return { x: cx + outer * Math.cos(a), y: cy + outer * Math.sin(a) };
     });
-  }, []);
+  }, [RADIUS]);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -361,25 +369,27 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
         </Animated.View>
       </GestureDetector>
 
-      {/* Spin Button */}
-      <Pressable
-        onPress={spin}
-        disabled={isSpinning || localSpinningRef.current}
-        style={{
-          marginTop: 20,
-          paddingHorizontal: 28,
-          paddingVertical: 14,
-          borderRadius: 9999,
-          flexDirection: "row",
-          alignItems: "center",
-          backgroundColor: isSpinning || localSpinningRef.current ? "#9ca3af" : "#FF7A1A",
-        }}
-      >
-        <Ionicons name="refresh" size={22} color="white" />
-        <Text style={{ color: "white", fontWeight: "700", fontSize: 16, marginLeft: 8 }}>
-          {isSpinning ? "Spinning..." : "Spin"}
-        </Text>
-      </Pressable>
+      {/* Spin Button (optional) */}
+      {showButton && (
+        <Pressable
+          onPress={spin}
+          disabled={isSpinning || localSpinningRef.current}
+          style={{
+            marginTop: 20,
+            paddingHorizontal: 28,
+            paddingVertical: 14,
+            borderRadius: 9999,
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: isSpinning || localSpinningRef.current ? "#9ca3af" : "#FF7A1A",
+          }}
+        >
+          <Ionicons name="refresh" size={22} color="white" />
+          <Text style={{ color: "white", fontWeight: "700", fontSize: 16, marginLeft: 8 }}>
+            {isSpinning ? "Spinning..." : "Spin"}
+          </Text>
+        </Pressable>
+      )}
     </View>
   );
 });
