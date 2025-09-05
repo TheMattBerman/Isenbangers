@@ -1,13 +1,23 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { View, Text } from "react-native";
 
-function formatHHMMSS(msRemaining: number) {
+function humanizeHM(msRemaining: number) {
   const total = Math.max(0, Math.floor(msRemaining / 1000));
   const h = Math.floor(total / 3600);
   const m = Math.floor((total % 3600) / 60);
-  const s = total % 60;
-  const pad = (n: number) => n.toString().padStart(2, "0");
-  return `${pad(h)}:${pad(m)}:${pad(s)}`;
+  if (h <= 0) return `${m}m`;
+  return `${h}h ${m}m`;
+}
+
+function formatTimeOfDay(ms: number) {
+  const d = new Date(ms);
+  let hours = d.getHours();
+  const minutes = d.getMinutes();
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12;
+  if (hours === 0) hours = 12;
+  const mm = minutes.toString().padStart(2, "0");
+  return `${hours}:${mm}${ampm}`;
 }
 
 interface Countdown24hProps {
@@ -35,7 +45,7 @@ export default function Countdown24h({ endAtMs, onEnd }: Countdown24hProps) {
 
   const label = useMemo(() => {
     if (remaining <= 0) return "New banger unlocked 🎉";
-    return `Next daily in ${formatHHMMSS(remaining)}`;
+    return `Your next daily drops in ${humanizeHM(remaining)}`;
   }, [remaining]);
 
   return (
