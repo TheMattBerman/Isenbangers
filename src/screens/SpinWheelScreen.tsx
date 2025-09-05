@@ -23,9 +23,9 @@ export default function SpinWheelScreen() {
 
   const screenW = Dimensions.get("window").width;
   const wheelSize = Math.min(screenW * 1.35, 520);
-  const viewportH = Math.round(wheelSize * 0.35); // Show only top 35% of wheel
-  const pointerOffsetTop = -6;
-  const offsetY = -(wheelSize * 0.65); // Hide bottom 65% of wheel
+  const viewportH = Math.round(wheelSize * 0.32); // Show only top 32% of wheel
+  const pointerOffsetTop = -2;
+  const offsetY = wheelSize - viewportH + Math.abs(pointerOffsetTop); // push wheel down so only top arc is visible
 
   return (
     <SafeAreaView className="flex-1" style={{ flex: 1 }}>
@@ -87,7 +87,7 @@ export default function SpinWheelScreen() {
           {/* Bottom wheel viewport (clipped) - positioned at bottom */}
           <View style={{ flex: 1, justifyContent: 'flex-end' }}>
             <View style={{ height: viewportH, overflow: 'hidden', alignItems: 'center' }}>
-              <View style={{ marginTop: offsetY }}>
+              <View style={{ transform: [{ translateY: offsetY }] }}>
                 <SpinWheel
                   ref={wheelRef as any}
                   onSpinStart={() => setIsSpinning(true)}
@@ -96,7 +96,7 @@ export default function SpinWheelScreen() {
                   sections={getDefaultSpinSections()}
                   size={wheelSize}
                   showButton={false}
-                  innerRadiusRatio={0.42}
+                  innerRadiusRatio={0.38}
                   pointerOffsetTop={pointerOffsetTop}
                 />
               </View>
