@@ -122,6 +122,11 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
     } as any;
   });
 
+  // Keep avatars upright relative to screen by counter-rotating
+  const keepUprightStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${-rotation.value}deg` }],
+  }));
+
   const spin = () => {
     if (isSpinning || localSpinningRef.current) return;
     localSpinningRef.current = true;
@@ -337,7 +342,7 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
             </Group>
           </Canvas>
 
-          {/* Section avatars */}
+          {/* Section avatars (kept upright) */}
           {sections.map((s, i) => {
             const mid = i * panelAngle + panelAngle / 2 - 90; // center angle
             const outer = RADIUS * 0.82;
@@ -350,9 +355,9 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
             const top = center.y - size / 2;
             const isHighlight = highlightIdx === i;
             return (
-              <View key={s.id}
+              <Animated.View key={s.id}
                 pointerEvents="none"
-                style={{ position: "absolute", left, top, width: size, height: size, alignItems: "center", justifyContent: "center" }}
+                style={[{ position: "absolute", left, top, width: size, height: size, alignItems: "center", justifyContent: "center" }, keepUprightStyle]}
               >
                 <View style={{ position: "absolute", width: size, height: size, borderRadius: size / 2, backgroundColor: "#FFFFFF" }} />
                 <Image
@@ -362,7 +367,7 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
                   transition={150}
                   cachePolicy="memory-disk"
                 />
-              </View>
+              </Animated.View>
             );
           })}
         </Animated.View>
