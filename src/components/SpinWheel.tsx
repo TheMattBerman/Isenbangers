@@ -29,9 +29,6 @@ import {
 } from "../utils/spinWheelMath";
 
 const { width } = Dimensions.get("window");
-const WHEEL_SIZE = Math.min(width * 0.9, 360);
-const RADIUS = WHEEL_SIZE / 2;
-const INNER_RADIUS = RADIUS * 0.55;
 
 import { getDefaultSpinSections, SpinSection } from "../data/spinSections";
 
@@ -42,15 +39,17 @@ interface SpinWheelProps {
   sections?: SpinSection[];
   size?: number; // override wheel diameter
   showButton?: boolean; // show internal spin button
+  innerRadiusRatio?: number; // 0..1, default 0.42
+  pointerOffsetTop?: number; // px from container top, default -6
 }
 
 export type SpinWheelHandle = { startSpin: () => void; isBusy: () => boolean };
-const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete, isSpinning, onSpinStart, sections = getDefaultSpinSections(), size, showButton = true }, ref) => {
+const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete, isSpinning, onSpinStart, sections = getDefaultSpinSections(), size, showButton = true, innerRadiusRatio = 0.42, pointerOffsetTop = -6 }, ref) => {
   // Dimensions based on prop size
   const screenW = width;
   const WHEEL_SIZE = size ?? Math.min(screenW * 1.2, 480);
   const RADIUS = WHEEL_SIZE / 2;
-  const INNER_RADIUS = RADIUS * 0.55;
+  const INNER_RADIUS = RADIUS * innerRadiusRatio;
 
   const rotation = useSharedValue(0);
   const savedRotationDeg = useSharedValue(0);
@@ -269,7 +268,7 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
       <View
         style={{
           position: "absolute",
-          top: -8,
+          top: pointerOffsetTop,
           zIndex: 10,
           alignItems: "center",
           pointerEvents: "none",

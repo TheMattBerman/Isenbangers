@@ -27,9 +27,10 @@ export default function SpinWheelScreen() {
     }, 50);
   };
   const screenW = Dimensions.get("window").width;
-  const wheelSize = Math.min(screenW * 1.2, 480);
-  const viewportH = Math.round(wheelSize * 0.58);
-  const offsetY = -((wheelSize - viewportH) - 8);
+  const wheelSize = Math.min(screenW * 1.35, 520);
+  const viewportH = Math.round(wheelSize * 0.48);
+  const pointerOffsetTop = -6;
+  const offsetY = -((wheelSize - viewportH) - Math.abs(pointerOffsetTop));
 
   return (
     <SafeAreaView className="flex-1" style={{ flex: 1 }}>
@@ -41,7 +42,7 @@ export default function SpinWheelScreen() {
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
         >
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }}>
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}>
           {/* Top controls */}
           <View className="px-6 pt-8" style={{ paddingHorizontal: 24, paddingTop: 32 }}>
             <Text style={{ color: '#FFFFFF', fontSize: 28, fontWeight: '800', textAlign: 'center' }}>Wheel of Greg</Text>
@@ -49,12 +50,8 @@ export default function SpinWheelScreen() {
             <Pressable
               onPress={() => {
                 if (wheelRef.current?.isBusy()) return;
-                if (selectedBanger) {
-                  setSelectedBanger(null);
-                  setTimeout(() => wheelRef.current?.startSpin(), 50);
-                } else {
-                  wheelRef.current?.startSpin();
-                }
+                if (wheelRef.current?.isBusy()) return;
+                wheelRef.current?.startSpin();
               }}
               disabled={isSpinning}
               accessibilityRole="button"
@@ -104,6 +101,8 @@ export default function SpinWheelScreen() {
                 sections={getDefaultSpinSections()}
                 size={wheelSize}
                 showButton={false}
+                innerRadiusRatio={0.42}
+                pointerOffsetTop={pointerOffsetTop}
               />
             </View>
           </View>
