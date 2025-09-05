@@ -14,6 +14,6 @@ export const gregPhotos: GregPhoto[] = [
   { id: "greg-4", title: "Greg 4", uri: "https://images.composerapi.com/BC616E90-DAAF-4F36-8985-00A5C350B9B1.jpg" },
   { id: "greg-5", title: "Greg 5", uri: "https://images.composerapi.com/F5926E6D-7510-4E00-8082-3E7F3EA1BD48.jpg" },
   { id: "greg-6", title: "Greg 6", uri: "https://images.composerapi.com/89D59CA1-F7B3-4908-8E41-B294F1025268.jpg" },
-  { id: "greg-7", title: "Greg 7", uri: "https://placehold.co/512x512?text=Greg+7" },
+  { id: "greg-7", title: "Greg 7", uri: "https://images.composerapi.com/9638E65B-DB5D-4DAA-A236-F3F01FBBF607.jpg" },
   { id: "greg-8", title: "Greg 8", uri: "https://placehold.co/512x512?text=Greg+8" },
 ];
