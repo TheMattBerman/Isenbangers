@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Pressable } from "react-native";
+import * as Haptics from "expo-haptics";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import BangerCard from "../components/BangerCard";
@@ -34,6 +35,7 @@ export default function DailyBangerScreen() {
   const [streakModalVisible, setStreakModalVisible] = useState(false);
   const [streakMode, setStreakMode] = useState<"earned" | "lost">("earned");
   const [streakCountForModal, setStreakCountForModal] = useState(0);
+  const [openedManually, setOpenedManually] = useState(false);
   const week = useMemo(() => buildWeekRow(streakCountForModal, new Date().getDay()), [streakCountForModal]);
 
   useEffect(() => {
@@ -61,9 +63,18 @@ export default function DailyBangerScreen() {
       const newStreak = mode === "lost" ? prevStreak : prevStreak + 1;
       setStreakCountForModal(mode === "lost" ? prevStreak : newStreak);
       setStreakMode(mode);
+      setOpenedManually(false);
       setStreakModalVisible(true);
     }
   }, []);
+
+  const openStreakDetails = () => {
+    setOpenedManually(true);
+    setStreakMode("earned");
+    setStreakCountForModal(currentStreak);
+    setStreakModalVisible(true);
+    Haptics.selectionAsync();
+  };
 
 
 
@@ -124,7 +135,10 @@ export default function DailyBangerScreen() {
           </View>
 
           {/* Streak Counter */}
-          <View 
+          <Pressable
+            onPress={openStreakDetails}
+            accessibilityRole="button"
+            accessibilityLabel="View streak details"
             className="mx-6 mb-6 rounded-2xl p-4"
             style={{
               marginHorizontal: 24,
@@ -155,7 +169,8 @@ export default function DailyBangerScreen() {
                 🔥 {currentStreak} Day Streak
               </Text>
             </View>
-          </View>
+            <Text style={{ color: '#6B7280', textAlign: 'center', marginTop: 6, fontSize: 12 }}>Tap to view</Text>
+          </Pressable>
 
           {/* Banger Card */}
           <View 
@@ -193,7 +208,7 @@ export default function DailyBangerScreen() {
            mode={streakMode}
            streakCount={streakCountForModal}
            week={week}
-           onContinue={() => { setStreakModalVisible(false); setLastStreakShownToday(); }}
+           onContinue={() => { setStreakModalVisible(false); if (!openedManually) setLastStreakShownToday(); setOpenedManually(false); }}
          />
          </ScrollView>
          </LinearGradient>
