@@ -29,28 +29,31 @@ export default function AppNavigator() {
         tabBarActiveTintColor: "#f97316",
         tabBarInactiveTintColor: "gray",
         headerStyle: {
-          backgroundColor: "#f97316",
+          backgroundColor: route.name === "Spin" ? "#0b0f19" : "#FFFFFF",
         },
-        headerTintColor: "white",
+        headerTintColor: route.name === "Spin" ? "#FFFFFF" : "#111111",
         headerTitleStyle: {
-          fontWeight: "bold",
+          fontSize: 16,
+          fontWeight: "600",
         },
+        headerTitleAlign: "center",
+        headerShadowVisible: false,
       })}
     >
       <Tab.Screen 
         name="Today" 
         component={DailyBangerScreen}
-        options={{ title: "Today's Banger" }}
+        options={{ title: "The Daily" }}
       />
       <Tab.Screen 
         name="Spin" 
         component={SpinWheelScreen}
-        options={{ title: "Spin the Wheel" }}
+        options={{ title: "The Wheel" }}
       />
       <Tab.Screen 
         name="Library" 
         component={LibraryScreen}
-        options={{ title: "Banger Library" }}
+        options={{ title: "The Library" }}
       />
     </Tab.Navigator>
   );

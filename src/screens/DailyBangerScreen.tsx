@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import * as Haptics from "expo-haptics";
-import Animated, { useSharedValue, useAnimatedStyle, withTiming } from "react-native-reanimated";
+
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
+
 import BangerCard from "../components/BangerCard";
 import { getTodaysBanger } from "../data/bangers";
 import { useAppStore } from "../state/appStore";
@@ -71,13 +71,7 @@ export default function DailyBangerScreen() {
     }
   }, []);
 
-  const openStreakDetails = () => {
-    setOpenedManually(true);
-    setStreakMode("earned");
-    setStreakCountForModal(currentStreak);
-    setStreakModalVisible(true);
-    Haptics.selectionAsync();
-  };
+
 
 
 
@@ -85,6 +79,7 @@ export default function DailyBangerScreen() {
     <SafeAreaView 
       className="flex-1"
       style={{ flex: 1 }}
+      edges={["left","right","bottom"]}
     >
       <View style={{ flex: 1, backgroundColor: '#F5F3EE' }}>
         <LinearGradient
@@ -100,72 +95,7 @@ export default function DailyBangerScreen() {
           style={{ flex: 1 }}
           contentContainerStyle={{ flexGrow: 1 }}
         >
-          {/* Header */}
-          <View 
-            className="px-6 py-8"
-            style={{
-              paddingHorizontal: 24,
-              paddingVertical: 32,
-            }}
-          >
-            <Text 
-              className="text-3xl font-bold text-center mb-2"
-              style={{
-                color: '#111111',
-                fontSize: 32,
-                fontWeight: 'bold',
-                textAlign: 'center',
-                marginBottom: 8,
-              }}
-            >
-              Today's Banger
-            </Text>
-            <Text 
-              className="text-center text-lg"
-              style={{
-                color: '#6B7280',
-                textAlign: 'center',
-                fontSize: 18,
-              }}
-            >
-              {new Date().toLocaleDateString("en-US", { 
-                weekday: "long", 
-                year: "numeric", 
-                month: "long", 
-                day: "numeric" 
-              })}
-            </Text>
-            {(() => { const pillScale = useSharedValue(1); const pillStyle = useAnimatedStyle(() => ({ transform: [{ scale: pillScale.value }] }));
-              return (
-                <Animated.View style={[pillStyle, { position: 'absolute', top: 8, right: 16 }]}>
-                  <Pressable
-                    onPress={openStreakDetails}
-                    onPressIn={() => { pillScale.value = withTiming(0.98, { duration: 80 }); }}
-                    onPressOut={() => { pillScale.value = withTiming(1, { duration: 120 }); }}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Streak: ${currentStreak} days`}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      backgroundColor: '#FFFFFF',
-                      paddingHorizontal: 12,
-                      height: 32,
-                      borderRadius: 16,
-                      borderWidth: StyleSheet.hairlineWidth,
-                      borderColor: '#E6E3DA',
-                      shadowColor: '#000000',
-                      shadowOpacity: 0.08,
-                      shadowOffset: { width: 0, height: 1 },
-                      shadowRadius: 2,
-                      elevation: 1,
-                    }}
-                  >
-                    <Ionicons name="flame" size={16} color="#FF7A1A" />
-                    <Text style={{ marginLeft: 6, color: '#111111', fontWeight: '700' }}>{currentStreak}</Text>
-                  </Pressable>
-                </Animated.View>
-              ); })()}
-          </View>
+
 
 
 

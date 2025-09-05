@@ -28,7 +28,7 @@ export default function SpinWheelScreen() {
   const wheelLiftPx = 15; // raise wheel ~15px
 
   return (
-    <SafeAreaView className="flex-1" style={{ flex: 1 }}>
+    <SafeAreaView className="flex-1" style={{ flex: 1 }} edges={["left","right","bottom"]}>
       <View style={{ flex: 1, backgroundColor: '#0b0f19' }}>
         <LinearGradient
           colors={["#0b0f19", "#101828"]}
@@ -39,9 +39,7 @@ export default function SpinWheelScreen() {
         >
         <View style={{ flex: 1, paddingBottom: 32 }}>
           {/* Top controls */}
-          <View style={{ paddingHorizontal: 24, paddingTop: 32 }}>
-            <Text style={{ color: '#FFFFFF', fontSize: 28, fontWeight: '800', textAlign: 'center' }}>Wheel of Greg</Text>
-            <View style={{ marginTop: 16 }} />
+          <View style={{ paddingHorizontal: 24, paddingTop: 16 }}>
             <Pressable
               onPress={() => {
                 if (wheelRef.current?.isBusy()) return;

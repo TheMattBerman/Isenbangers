@@ -51,12 +51,10 @@ export default function LibraryScreen() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gregBg">
+    <SafeAreaView className="flex-1 bg-gregBg" edges={["left","right","bottom"]}>
       {/* Header */}
       <View className="bg-white px-6 py-4 border-b border-gregBorder">
-        <Text className="text-2xl font-bold text-gregText mb-4">
-          Banger Library
-        </Text>
+
         
         {/* Search Bar */}
         <View className="flex-row items-center bg-white rounded-xl px-4 py-3 mb-4 border border-gregBorder">
