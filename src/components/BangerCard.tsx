@@ -94,8 +94,11 @@ export default function BangerCard({ banger, showCategory = true }: BangerCardPr
   // Toast animated style
   const toastStyle = useAnimatedStyle(() => ({ opacity: toastOpacity.value }));
 
-  // Play press micro-interaction
+  // Press micro-interactions
   const playScale = useSharedValue(1);
+  const copyScale = useSharedValue(1);
+  const favScale = useSharedValue(1);
+  const shareScale = useSharedValue(1);
   const playScaleStyle = useAnimatedStyle(() => ({ transform: [{ scale: playScale.value }] }));
 
   return (
@@ -131,7 +134,7 @@ export default function BangerCard({ banger, showCategory = true }: BangerCardPr
           </View>
 
           {/* Quote */}
-          <Text className="text-xl leading-8 font-medium" style={{ color: "#111111", marginBottom: 16 }}>
+          <Text className="text-xl leading-8 font-medium" style={{ color: "#111111", marginBottom: 16 }} numberOfLines={6} ellipsizeMode="tail">
             "{banger.text}"
           </Text>
 
@@ -183,42 +186,63 @@ export default function BangerCard({ banger, showCategory = true }: BangerCardPr
       </View>
 
       {/* Action Bar */}
-      <View className="flex-row items-center justify-evenly" style={{ marginTop: 40 }}>
-        <Pressable
-          onPress={handleCopy}
-          accessibilityLabel="Copy quote"
-          style={{ alignItems: "center", padding: 8 }}
-          hitSlop={12}
-        >
-          <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E6E3DA" }}>
-            <Ionicons name="copy-outline" size={20} color="#374151" />
-          </View>
-          <Text className="text-xs mt-2" style={{ color: "#6B7280" }}>Copy</Text>
-        </Pressable>
+      <View className="flex-row items-center" style={{ marginTop: 32 }}>
+        {/* Copy */}
+        <Animated.View style={{ flex: 1, alignItems: "center" }}>
+          <Pressable
+            onPress={handleCopy}
+            onPressIn={() => { copyScale.value = withTiming(0.96, { duration: 90 }); }}
+            onPressOut={() => { copyScale.value = withTiming(1, { duration: 120 }); }}
+            accessibilityLabel="Copy quote"
+            style={{ alignItems: "center", padding: 8 }}
+            hitSlop={12}
+          >
+            <Animated.View style={[{ transform: [{ scale: copyScale.value }] } as any]}>
+              <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E6E3DA" }}>
+                <Ionicons name="copy-outline" size={20} color="#374151" />
+              </View>
+            </Animated.View>
+            <Text className="text-xs mt-2" style={{ color: "#6B7280" }}>Copy</Text>
+          </Pressable>
+        </Animated.View>
 
-        <Pressable
-          onPress={handleFavorite}
-          accessibilityLabel={isFavorite ? "Remove from favorites" : "Add to favorites"}
-          style={{ alignItems: "center", padding: 8 }}
-          hitSlop={12}
-        >
-          <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E6E3DA" }}>
-            <Ionicons name={isFavorite ? "heart" : "heart-outline"} size={20} color={isFavorite ? "#EF4444" : "#374151"} />
-          </View>
-          <Text className="text-xs mt-2" style={{ color: "#6B7280" }}>Favorite</Text>
-        </Pressable>
+        {/* Favorite */}
+        <Animated.View style={{ flex: 1, alignItems: "center" }}>
+          <Pressable
+            onPress={handleFavorite}
+            onPressIn={() => { favScale.value = withTiming(0.96, { duration: 90 }); }}
+            onPressOut={() => { favScale.value = withTiming(1, { duration: 120 }); }}
+            accessibilityLabel={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            style={{ alignItems: "center", padding: 8 }}
+            hitSlop={12}
+          >
+            <Animated.View style={[{ transform: [{ scale: favScale.value }] } as any]}>
+              <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E6E3DA" }}>
+                <Ionicons name={isFavorite ? "heart" : "heart-outline"} size={20} color={isFavorite ? "#EF4444" : "#374151"} />
+              </View>
+            </Animated.View>
+            <Text className="text-xs mt-2" style={{ color: "#6B7280" }}>Favorite</Text>
+          </Pressable>
+        </Animated.View>
 
-        <Pressable
-          onPress={() => setShowShareModal(true)}
-          accessibilityLabel="Share quote"
-          style={{ alignItems: "center", padding: 8 }}
-          hitSlop={12}
-        >
-          <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E6E3DA" }}>
-            <Ionicons name="share-outline" size={20} color="#374151" />
-          </View>
-          <Text className="text-xs mt-2" style={{ color: "#6B7280" }}>Share</Text>
-        </Pressable>
+        {/* Share */}
+        <Animated.View style={{ flex: 1, alignItems: "center" }}>
+          <Pressable
+            onPress={() => setShowShareModal(true)}
+            onPressIn={() => { shareScale.value = withTiming(0.96, { duration: 90 }); }}
+            onPressOut={() => { shareScale.value = withTiming(1, { duration: 120 }); }}
+            accessibilityLabel="Share quote"
+            style={{ alignItems: "center", padding: 8 }}
+            hitSlop={12}
+          >
+            <Animated.View style={[{ transform: [{ scale: shareScale.value }] } as any]}>
+              <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E6E3DA" }}>
+                <Ionicons name="share-outline" size={20} color="#374151" />
+              </View>
+            </Animated.View>
+            <Text className="text-xs mt-2" style={{ color: "#6B7280" }}>Share</Text>
+          </Pressable>
+        </Animated.View>
       </View>
 
       {/* Toast */}

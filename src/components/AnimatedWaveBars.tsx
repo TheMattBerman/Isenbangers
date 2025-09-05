@@ -6,6 +6,7 @@ import Animated, {
   useSharedValue,
   withRepeat,
   withTiming,
+  useReducedMotion,
 } from "react-native-reanimated";
 
 interface AnimatedWaveBarsProps {
@@ -74,16 +75,17 @@ export default function AnimatedWaveBars({
 }: AnimatedWaveBarsProps) {
   const indexes = useMemo(() => Array.from({ length: barCount }, (_, i) => i), [barCount]);
   const progress = useSharedValue(0);
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
-    if (active) {
+    if (active && !reduceMotion) {
       progress.value = withRepeat(withTiming(1, { duration: 900 }), -1, false);
     } else {
       cancelAnimation(progress);
       progress.value = 0;
     }
     return () => cancelAnimation(progress);
-  }, [active]);
+  }, [active, reduceMotion]);
 
   const barWidth = Math.max(2, Math.floor(width / (barCount * 1.4)));
   const gap = Math.max(2, Math.floor(barWidth * 0.6));
