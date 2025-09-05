@@ -1,5 +1,5 @@
-import React, { useState, useRef, useMemo } from "react";
-import { View, Text, ScrollView, Pressable, Dimensions } from "react-native";
+import React, { useState, useRef } from "react";
+import { View, Text, Pressable, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import SpinWheel, { SpinWheelHandle } from "../components/SpinWheel";
@@ -20,17 +20,12 @@ export default function SpinWheelScreen() {
     setSelectedBanger(banger);
   };
 
-  const handleNewSpin = () => {
-    setSelectedBanger(null);
-    setTimeout(() => {
-      wheelRef.current?.startSpin();
-    }, 50);
-  };
+
   const screenW = Dimensions.get("window").width;
   const wheelSize = Math.min(screenW * 1.35, 520);
-  const viewportH = Math.round(wheelSize * 0.48);
+  const viewportH = Math.round(wheelSize * 0.35); // Show only top 35% of wheel
   const pointerOffsetTop = -6;
-  const offsetY = -((wheelSize - viewportH) - Math.abs(pointerOffsetTop));
+  const offsetY = -(wheelSize * 0.65); // Hide bottom 65% of wheel
 
   return (
     <SafeAreaView className="flex-1" style={{ flex: 1 }}>
@@ -42,14 +37,13 @@ export default function SpinWheelScreen() {
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
         >
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}>
+        <View style={{ flex: 1, paddingBottom: 32 }}>
           {/* Top controls */}
-          <View className="px-6 pt-8" style={{ paddingHorizontal: 24, paddingTop: 32 }}>
+          <View style={{ paddingHorizontal: 24, paddingTop: 32 }}>
             <Text style={{ color: '#FFFFFF', fontSize: 28, fontWeight: '800', textAlign: 'center' }}>Wheel of Greg</Text>
             <View style={{ marginTop: 16 }} />
             <Pressable
               onPress={() => {
-                if (wheelRef.current?.isBusy()) return;
                 if (wheelRef.current?.isBusy()) return;
                 wheelRef.current?.startSpin();
               }}
@@ -79,7 +73,7 @@ export default function SpinWheelScreen() {
           </View>
 
           {/* Middle content slot */}
-          <View style={{ paddingHorizontal: 24, marginTop: 18 }}>
+          <View style={{ paddingHorizontal: 24, marginTop: 24 }}>
             {!selectedBanger && (
               <View style={{ backgroundColor: '#111827', borderColor: '#1f2937', borderWidth: 1, borderRadius: 16, padding: 16 }}>
                 <Text style={{ color: '#9CA3AF', textAlign: 'center' }}>Spin the Wheel of Greg</Text>
@@ -90,23 +84,25 @@ export default function SpinWheelScreen() {
             )}
           </View>
 
-          {/* Bottom wheel viewport (clipped) */}
-          <View style={{ marginTop: 24, height: viewportH, overflow: 'hidden', alignItems: 'center' }}>
-            <View style={{ marginTop: offsetY }}>
-              <SpinWheel
-                ref={wheelRef as any}
-                onSpinStart={() => setIsSpinning(true)}
-                onSpinComplete={handleSpinComplete}
-                isSpinning={isSpinning}
-                sections={getDefaultSpinSections()}
-                size={wheelSize}
-                showButton={false}
-                innerRadiusRatio={0.42}
-                pointerOffsetTop={pointerOffsetTop}
-              />
+          {/* Bottom wheel viewport (clipped) - positioned at bottom */}
+          <View style={{ flex: 1, justifyContent: 'flex-end' }}>
+            <View style={{ height: viewportH, overflow: 'hidden', alignItems: 'center' }}>
+              <View style={{ marginTop: offsetY }}>
+                <SpinWheel
+                  ref={wheelRef as any}
+                  onSpinStart={() => setIsSpinning(true)}
+                  onSpinComplete={handleSpinComplete}
+                  isSpinning={isSpinning}
+                  sections={getDefaultSpinSections()}
+                  size={wheelSize}
+                  showButton={false}
+                  innerRadiusRatio={0.42}
+                  pointerOffsetTop={pointerOffsetTop}
+                />
+              </View>
             </View>
           </View>
-        </ScrollView>
+        </View>
         </LinearGradient>
       </View>
     </SafeAreaView>
