@@ -12,7 +12,6 @@ import StreakModal, { buildWeekRow } from "../components/StreakModal";
 import Countdown24h from "../components/Countdown24h";
 import UnlockMoreModal from "../components/UnlockMoreModal";
 import DailyProgressBar from "../components/DailyProgressBar";
-import DailyProgressBar from "../components/DailyProgressBar";
 
 export default function DailyBangerScreen() {
   const insets = useSafeAreaInsets();
@@ -109,10 +108,6 @@ export default function DailyBangerScreen() {
 
 
 
-          {/* Subtle daily progress bar */}
-          {firstViewAtMs ? (
-            <DailyProgressBar startAtMs={firstViewAtMs} endAtMs={firstViewAtMs + 24 * 60 * 60 * 1000} />
-          ) : null}
 
           {/* Centered Banger Card */}
           <View style={{ flex: 1, justifyContent: "center", paddingTop: 8 }}>
