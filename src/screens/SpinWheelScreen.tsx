@@ -21,7 +21,6 @@ export default function SpinWheelScreen() {
 
   const handleNewSpin = () => {
     setSelectedBanger(null);
-    setIsSpinning(true);
     setTimeout(() => {
       wheelRef.current?.startSpin();
     }, 50);
@@ -92,6 +91,7 @@ export default function SpinWheelScreen() {
             >
               <SpinWheel 
                 ref={wheelRef as any}
+                onSpinStart={() => setIsSpinning(true)}
                 onSpinComplete={handleSpinComplete}
                 isSpinning={isSpinning}
               />

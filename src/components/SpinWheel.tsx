@@ -34,10 +34,11 @@ const INNER_RADIUS = RADIUS * 0.55;
 interface SpinWheelProps {
   onSpinComplete: (isRare: boolean) => void;
   isSpinning: boolean;
+  onSpinStart?: () => void;
 }
 
 export type SpinWheelHandle = { startSpin: () => void; isBusy: () => boolean };
-const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete, isSpinning }, ref) => {
+const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete, isSpinning, onSpinStart }, ref) => {
   const rotation = useSharedValue(0);
   const savedRotationDeg = useSharedValue(0);
   const startAngleDeg = useSharedValue(0);
@@ -59,6 +60,10 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
 
   const setLocalSpinTrue = useCallback(() => {
     localSpinningRef.current = true;
+  }, []);
+
+  const setLocalSpinFalse = useCallback(() => {
+    localSpinningRef.current = false;
   }, []);
 
   const segments = useMemo(() => {
@@ -96,6 +101,7 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
   const spin = () => {
     if (isSpinning || localSpinningRef.current) return;
     localSpinningRef.current = true;
+    onSpinStart?.();
     spinning.value = 1;
 
     const turns = 3 + Math.random() * 1.5; // 3 to 4.5 turns
@@ -108,7 +114,11 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
 
     rotation.value = withTiming(targetDeg, { duration: 2600, easing }, (finished) => {
       "worklet";
-      if (!finished) return;
+      if (!finished) {
+        spinning.value = 0;
+        runOnJS(setLocalSpinFalse)();
+        return;
+      }
       // Compute panel index and rarity inside worklet
       const angle = (450 - (targetDeg % 360)) % 360;
       const seg = 360 / PANEL_COUNT;
@@ -152,6 +162,7 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
       "worklet";
       if (spinning.value === 1) return;
       spinning.value = 1;
+      if (onSpinStart) runOnJS(onSpinStart)();
       runOnJS(setLocalSpinTrue)();
 
       const turns = 3 + Math.random() * 1.5;
@@ -163,7 +174,7 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
 
       rotation.value = withTiming(targetDeg, { duration: 2600, easing }, (finished) => {
         "worklet";
-        if (!finished) return;
+        if (!finished) { spinning.value = 0; runOnJS(setLocalSpinFalse)(); return; }
         const angle = (450 - (targetDeg % 360)) % 360;
         const seg = 360 / PANEL_COUNT;
         const index = Math.floor(angle / seg) % PANEL_COUNT;
@@ -196,6 +207,7 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
       "worklet";
       if (spinning.value === 1) return;
       spinning.value = 1;
+      if (onSpinStart) runOnJS(onSpinStart)();
       runOnJS(setLocalSpinTrue)();
 
       const turns = 3 + Math.random() * 1.5;
@@ -207,7 +219,7 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
 
       rotation.value = withTiming(targetDeg, { duration: 2600, easing }, (finished) => {
         "worklet";
-        if (!finished) return;
+        if (!finished) { spinning.value = 0; runOnJS(setLocalSpinFalse)(); return; }
         const angle = (450 - (targetDeg % 360)) % 360;
         const seg = 360 / PANEL_COUNT;
         const index = Math.floor(angle / seg) % PANEL_COUNT;
@@ -313,7 +325,7 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
       >
         <Ionicons name="refresh" size={22} color="white" />
         <Text style={{ color: "white", fontWeight: "700", fontSize: 16, marginLeft: 8 }}>
-          {isSpinning || localSpinningRef.current ? "Spinning..." : "Spin"}
+          {isSpinning ? "Spinning..." : "Spin"}
         </Text>
       </Pressable>
     </View>
