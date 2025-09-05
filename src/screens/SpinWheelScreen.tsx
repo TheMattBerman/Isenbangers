@@ -11,9 +11,7 @@ export default function SpinWheelScreen() {
   const [isSpinning, setIsSpinning] = useState(false);
   const [selectedBanger, setSelectedBanger] = useState<Banger | null>(null);
 
-  // Debug logging
-  console.log("SpinWheelScreen - isSpinning:", isSpinning);
-  console.log("SpinWheelScreen - selectedBanger:", selectedBanger);
+  // Debug state is shown via UI; removed noisy logs.
 
   const handleSpinComplete = (isRare: boolean) => {
     setIsSpinning(false);
@@ -164,7 +162,7 @@ export default function SpinWheelScreen() {
                   }}
                 >
                   Spin the wheel to discover random bangers!
-                  {"\n"}Rotate with your fingers or tap Spin.
+                  {"\n"}Use one finger to rotate or tap Spin.
                   {"\n"}Yellow segments give you rare bangers! ⭐
                 </Text>
               </View>

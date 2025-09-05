@@ -39,6 +39,7 @@ interface SpinWheelProps {
 export default function SpinWheel({ onSpinComplete, isSpinning }: SpinWheelProps) {
   const rotation = useSharedValue(0);
   const savedRotationDeg = useSharedValue(0);
+  const startAngleDeg = useSharedValue(0);
   const spinning = useSharedValue(0);
   const localSpinningRef = useRef(false);
 
@@ -163,6 +164,52 @@ export default function SpinWheel({ onSpinComplete, isSpinning }: SpinWheelProps
       });
     });
 
+  // Gesture: one-finger pan to rotate around wheel center and spin on release
+  const panGesture = Gesture.Pan()
+    .onStart((e) => {
+      "worklet";
+      if (spinning.value === 1) return;
+      const dx = e.x - RADIUS;
+      const dy = e.y - RADIUS;
+      startAngleDeg.value = (Math.atan2(dy, dx) * 180) / Math.PI;
+      savedRotationDeg.value = rotation.value % 360;
+    })
+    .onUpdate((e) => {
+      "worklet";
+      if (spinning.value === 1) return;
+      const current = (Math.atan2(e.y - RADIUS, e.x - RADIUS) * 180) / Math.PI;
+      let delta = current - startAngleDeg.value;
+      delta = ((delta + 540) % 360) - 180; // normalize to [-180,180]
+      rotation.value = savedRotationDeg.value + delta;
+    })
+    .onEnd(() => {
+      "worklet";
+      if (spinning.value === 1) return;
+      spinning.value = 1;
+      runOnJS(setLocalSpinTrue)();
+
+      const turns = 3 + Math.random() * 1.5;
+      const targetPanel = Math.floor(Math.random() * PANEL_COUNT);
+      const panelCenter = targetPanel * panelAngle + panelAngle / 2;
+      const base = rotation.value % 360;
+      const targetDeg = base + turns * 360 + panelCenter;
+      const easing = Easing.bezier(0.1, 0.8, 0.3, 1);
+
+      rotation.value = withTiming(targetDeg, { duration: 2600, easing }, (finished) => {
+        "worklet";
+        if (!finished) return;
+        const angle = (450 - (targetDeg % 360)) % 360;
+        const seg = 360 / PANEL_COUNT;
+        const index = Math.floor(angle / seg) % PANEL_COUNT;
+        const rare = RARE_INDEXES.indexOf(index) !== -1;
+        spinning.value = 0;
+        runOnJS(handleHapticFeedback)();
+        runOnJS(handleSpinComplete)(rare);
+      });
+    });
+
+  const composedGesture = Gesture.Simultaneous(panGesture, rotationGesture);
+
   return (
     <View style={{ width: WHEEL_SIZE, alignItems: "center" }}>
       {/* Pointer */}
@@ -194,7 +241,7 @@ export default function SpinWheel({ onSpinComplete, isSpinning }: SpinWheelProps
       </View>
 
       {/* Wheel */}
-      <GestureDetector gesture={rotationGesture}>
+      <GestureDetector gesture={composedGesture}>
         <Animated.View style={[{ width: WHEEL_SIZE, height: WHEEL_SIZE }, animatedStyle]}>
           <Canvas style={{ width: WHEEL_SIZE, height: WHEEL_SIZE }}>
             {/* Rim */}
