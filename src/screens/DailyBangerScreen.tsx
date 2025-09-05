@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import * as Haptics from "expo-haptics";
+import Animated, { useSharedValue, useAnimatedStyle, withTiming } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import BangerCard from "../components/BangerCard";
@@ -64,6 +65,7 @@ export default function DailyBangerScreen() {
       setStreakCountForModal(mode === "lost" ? prevStreak : newStreak);
       setStreakMode(mode);
       setOpenedManually(false);
+      Haptics.notificationAsync(mode === "lost" ? Haptics.NotificationFeedbackType.Warning : Haptics.NotificationFeedbackType.Success);
       setStreakModalVisible(true);
     }
   }, []);
@@ -135,8 +137,12 @@ export default function DailyBangerScreen() {
           </View>
 
           {/* Streak Counter */}
+          {(() => { const pressScale = useSharedValue(1); const cardStyle = useAnimatedStyle(() => ({ transform: [{ scale: pressScale.value }] }));
+          return (
           <Pressable
             onPress={openStreakDetails}
+            onPressIn={() => { pressScale.value = withTiming(0.98, { duration: 80 }); }}
+            onPressOut={() => { pressScale.value = withTiming(1, { duration: 120 }); }}
             accessibilityRole="button"
             accessibilityLabel="View streak details"
             className="mx-6 mb-6 rounded-2xl p-4"
@@ -150,27 +156,31 @@ export default function DailyBangerScreen() {
               borderColor: '#E6E3DA',
             }}
           >
-            <View 
-              className="flex-row items-center justify-center"
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Text 
-                className="text-lg font-semibold"
+            <Animated.View style={cardStyle}>
+              <View 
+                className="flex-row items-center justify-center"
                 style={{
-                  color: '#111111',
-                  fontSize: 18,
-                  fontWeight: '600',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
-                🔥 {currentStreak} Day Streak
-              </Text>
-            </View>
-            <Text style={{ color: '#6B7280', textAlign: 'center', marginTop: 6, fontSize: 12 }}>Tap to view</Text>
+                <Text 
+                  className="text-lg font-semibold"
+                  style={{
+                    color: '#111111',
+                    fontSize: 18,
+                    fontWeight: '600',
+                  }}
+                >
+                  🔥 {currentStreak} Day Streak
+                </Text>
+              </View>
+              <Text style={{ color: '#6B7280', textAlign: 'center', marginTop: 6, fontSize: 12 }}>Tap to view</Text>
+            </Animated.View>
           </Pressable>
+          ); })()}
+
 
           {/* Banger Card */}
           <View 
