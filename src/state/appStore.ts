@@ -15,6 +15,10 @@ interface AppState {
   dailyBangerViewed: boolean;
   lastDailyBangerDate: string | null;
   
+  // UI / Streak modal guard
+  lastStreakShownDate: string | null;
+  setLastStreakShownToday: () => void;
+  
   // Actions
   incrementStreak: () => void;
   resetStreak: () => void;
@@ -33,6 +37,7 @@ export const useAppStore = create<AppState>()(
       favoriteBangers: [],
       dailyBangerViewed: false,
       lastDailyBangerDate: null,
+      lastStreakShownDate: null,
       
       incrementStreak: () => {
         const today = new Date().toDateString();
@@ -75,6 +80,10 @@ export const useAppStore = create<AppState>()(
         set((state) => ({
           totalBangersViewed: state.totalBangersViewed + 1
         })),
+      setLastStreakShownToday: () => {
+        const today = new Date().toDateString();
+        set({ lastStreakShownDate: today });
+      },
     }),
     {
       name: "isenbangers-storage",

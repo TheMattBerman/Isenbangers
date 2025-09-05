@@ -1,10 +1,11 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import BangerCard from "../components/BangerCard";
 import { getTodaysBanger } from "../data/bangers";
 import { useAppStore } from "../state/appStore";
+import StreakModal, { buildWeekRow } from "../components/StreakModal";
 
 export default function DailyBangerScreen() {
   const todaysBanger = getTodaysBanger();
@@ -13,7 +14,10 @@ export default function DailyBangerScreen() {
     incrementStreak, 
     markDailyBangerViewed, 
     incrementTotalViewed,
-    lastDailyBangerDate 
+    lastDailyBangerDate,
+    lastViewedDate,
+    lastStreakShownDate,
+    setLastStreakShownToday,
   } = useAppStore();
 
   // Debug state is visible in UI; remove noisy logs.
@@ -27,12 +31,37 @@ export default function DailyBangerScreen() {
     );
   }
 
+  const [streakModalVisible, setStreakModalVisible] = useState(false);
+  const [streakMode, setStreakMode] = useState<"earned" | "lost">("earned");
+  const [streakCountForModal, setStreakCountForModal] = useState(0);
+  const week = useMemo(() => buildWeekRow(streakCountForModal, new Date().getDay()), [streakCountForModal]);
+
   useEffect(() => {
     const today = new Date().toDateString();
-    if (lastDailyBangerDate !== today) {
-      incrementStreak();
-      markDailyBangerViewed();
-      incrementTotalViewed();
+    if (lastDailyBangerDate === today) return;
+
+    // Evaluate before mutating state
+    const prevStreak = currentStreak;
+    const prevLastViewed = lastViewedDate;
+    const y = new Date();
+    y.setDate(y.getDate() - 1);
+    const yesterday = y.toDateString();
+
+    let mode: "earned" | "lost" = "earned";
+    if (prevLastViewed && prevLastViewed !== yesterday) {
+      if (prevLastViewed !== today) mode = prevStreak > 0 ? "lost" : "earned";
+    }
+
+    // Update counters for today
+    incrementStreak();
+    markDailyBangerViewed();
+    incrementTotalViewed();
+
+    if (lastStreakShownDate !== today) {
+      const newStreak = mode === "lost" ? prevStreak : prevStreak + 1;
+      setStreakCountForModal(mode === "lost" ? prevStreak : newStreak);
+      setStreakMode(mode);
+      setStreakModalVisible(true);
     }
   }, []);
 
@@ -158,9 +187,17 @@ export default function DailyBangerScreen() {
               Come back tomorrow for another banger! 🚀
             </Text>
           </View>
-        </ScrollView>
-        </LinearGradient>
-      </View>
-    </SafeAreaView>
-  );
+         {/* Streak Modal */}
+         <StreakModal
+           visible={streakModalVisible}
+           mode={streakMode}
+           streakCount={streakCountForModal}
+           week={week}
+           onContinue={() => { setStreakModalVisible(false); setLastStreakShownToday(); }}
+         />
+         </ScrollView>
+         </LinearGradient>
+       </View>
+     </SafeAreaView>
+   );
 }
