@@ -10,7 +10,7 @@ export const gregPhotos: GregPhoto[] = [
     uri: "https://images.composerapi.com/E5B590D4-C68C-4827-9BB7-A73BE9899190.jpg",
   },
   { id: "greg-2", title: "Greg 2", uri: "https://images.composerapi.com/1D02BB37-4F12-48D5-924A-9BF966BC83D0.jpg" },
-  { id: "greg-3", title: "Greg 3", uri: "https://placehold.co/512x512?text=Greg+3" },
+  { id: "greg-3", title: "Greg 3", uri: "https://images.composerapi.com/FEF681AF-BCB5-4A50-A7B4-94E5A92D1B28.jpg" },
   { id: "greg-4", title: "Greg 4", uri: "https://placehold.co/512x512?text=Greg+4" },
   { id: "greg-5", title: "Greg 5", uri: "https://placehold.co/512x512?text=Greg+5" },
   { id: "greg-6", title: "Greg 6", uri: "https://placehold.co/512x512?text=Greg+6" },
