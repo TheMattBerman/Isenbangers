@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, ScrollView, Pressable } from "react-native";
+import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
 import * as Haptics from "expo-haptics";
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 import BangerCard from "../components/BangerCard";
 import { getTodaysBanger } from "../data/bangers";
 import { useAppStore } from "../state/appStore";
@@ -134,52 +135,38 @@ export default function DailyBangerScreen() {
                 day: "numeric" 
               })}
             </Text>
+            {(() => { const pillScale = useSharedValue(1); const pillStyle = useAnimatedStyle(() => ({ transform: [{ scale: pillScale.value }] }));
+              return (
+                <Animated.View style={[pillStyle, { position: 'absolute', top: 8, right: 16 }]}>
+                  <Pressable
+                    onPress={openStreakDetails}
+                    onPressIn={() => { pillScale.value = withTiming(0.98, { duration: 80 }); }}
+                    onPressOut={() => { pillScale.value = withTiming(1, { duration: 120 }); }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Streak: ${currentStreak} days`}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: '#FFFFFF',
+                      paddingHorizontal: 12,
+                      height: 32,
+                      borderRadius: 16,
+                      borderWidth: StyleSheet.hairlineWidth,
+                      borderColor: '#E6E3DA',
+                      shadowColor: '#000000',
+                      shadowOpacity: 0.08,
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowRadius: 2,
+                      elevation: 1,
+                    }}
+                  >
+                    <Ionicons name="flame" size={16} color="#FF7A1A" />
+                    <Text style={{ marginLeft: 6, color: '#111111', fontWeight: '700' }}>{currentStreak}</Text>
+                  </Pressable>
+                </Animated.View>
+              ); })()}
           </View>
 
-          {/* Streak Counter */}
-          {(() => { const pressScale = useSharedValue(1); const cardStyle = useAnimatedStyle(() => ({ transform: [{ scale: pressScale.value }] }));
-          return (
-          <Pressable
-            onPress={openStreakDetails}
-            onPressIn={() => { pressScale.value = withTiming(0.98, { duration: 80 }); }}
-            onPressOut={() => { pressScale.value = withTiming(1, { duration: 120 }); }}
-            accessibilityRole="button"
-            accessibilityLabel="View streak details"
-            className="mx-6 mb-6 rounded-2xl p-4"
-            style={{
-              marginHorizontal: 24,
-              marginBottom: 24,
-              backgroundColor: '#FFFFFF',
-              borderRadius: 16,
-              padding: 16,
-              borderWidth: 1,
-              borderColor: '#E6E3DA',
-            }}
-          >
-            <Animated.View style={cardStyle}>
-              <View 
-                className="flex-row items-center justify-center"
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Text 
-                  className="text-lg font-semibold"
-                  style={{
-                    color: '#111111',
-                    fontSize: 18,
-                    fontWeight: '600',
-                  }}
-                >
-                  🔥 {currentStreak} Day Streak
-                </Text>
-              </View>
-              <Text style={{ color: '#6B7280', textAlign: 'center', marginTop: 6, fontSize: 12 }}>Tap to view</Text>
-            </Animated.View>
-          </Pressable>
-          ); })()}
 
 
           {/* Banger Card */}
