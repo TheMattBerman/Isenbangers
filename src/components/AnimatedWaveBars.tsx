@@ -38,7 +38,7 @@ function WaveBar({
     "worklet";
     const phase = (index / total) * Math.PI * 2;
     const s = Math.abs(Math.sin(progress.value * Math.PI * 2 + phase)); // 0..1
-    const h = height * (0.25 + 0.75 * s);
+    const h = height * (0.28 + 0.6 * s);
     return {
       height: h,
       opacity: 0.6 + 0.4 * s,
@@ -69,7 +69,7 @@ export default function AnimatedWaveBars({
   barCount = 7,
   width = 64,
   height = 28,
-  color = "#C084FC",
+  color = "#FF7A1A",
   style,
 }: AnimatedWaveBarsProps) {
   const indexes = useMemo(() => Array.from({ length: barCount }, (_, i) => i), [barCount]);

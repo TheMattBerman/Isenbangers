@@ -34,14 +34,14 @@ export default function ShareModal({ visible, onClose, banger }: ShareModalProps
       onRequestClose={onClose}
     >
       <View className="flex-1 bg-black/50 justify-end">
-        <View className="rounded-t-3xl" style={{ backgroundColor: "#0F0B16", borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: "rgba(255,255,255,0.12)" }}>
+        <View className="rounded-t-3xl" style={{ backgroundColor: "#FFFFFF", borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: "#E6E3DA" }}>
           {/* Header */}
-          <View className="flex-row items-center justify-between p-6" style={{ borderBottomWidth: 1, borderColor: "rgba(255,255,255,0.08)" }}>
-            <Text className="text-xl font-bold" style={{ color: "#F5F3EE" }}>
+          <View className="flex-row items-center justify-between p-6" style={{ borderBottomWidth: 1, borderColor: "#E6E3DA" }}>
+            <Text className="text-xl font-bold" style={{ color: "#111111" }}>
               Share this Banger
             </Text>
             <Pressable onPress={onClose} className="p-2">
-              <Ionicons name="close" size={24} color="#A3A3A3" />
+              <Ionicons name="close" size={24} color="#6B7280" />
             </Pressable>
           </View>
 
@@ -49,7 +49,7 @@ export default function ShareModal({ visible, onClose, banger }: ShareModalProps
           <View className="p-6">
             <View ref={cardRef} style={{ borderRadius: 20, padding: 16, overflow: "hidden" }}>
               <LinearGradient
-                colors={["#1B102B", "#0E0A17"]}
+                colors={["#FF8C33", "#FF7A1A"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={{ borderRadius: 20, padding: 16 }}

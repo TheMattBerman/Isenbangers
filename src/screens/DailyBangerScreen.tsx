@@ -81,9 +81,9 @@ export default function DailyBangerScreen() {
       style={{ flex: 1 }}
       edges={["left","right","bottom"]}
     >
-<View style={{ flex: 1, backgroundColor: "#0A0712" }}>
+<View style={{ flex: 1, backgroundColor: "#FFF7EF" }}>
         <LinearGradient
-          colors={["#13091F", "#0A0712"]}
+          colors={["#FFF9F4", "#FFF3E8"]}
           className="flex-1"
           style={{ flex: 1 }}
           start={{ x: 0, y: 0 }}
@@ -119,9 +119,9 @@ export default function DailyBangerScreen() {
             }}
           >
             <Text 
-              className="text-white/70 text-center text-sm"
+              className="text-gray-600 text-center text-sm"
               style={{
-                color: "rgba(255, 255, 255, 0.7)",
+                color: "#6B7280",
                 textAlign: "center",
                 fontSize: 12,
               }}

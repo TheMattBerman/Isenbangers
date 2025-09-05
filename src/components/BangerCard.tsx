@@ -82,116 +82,118 @@ export default function BangerCard({ banger, showCategory = true }: BangerCardPr
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case "fundraising": return "bg-purple-500/20 text-purple-200";
-      case "grit": return "bg-pink-500/20 text-pink-200";
-      case "growth": return "bg-blue-500/20 text-blue-200";
-      case "mindset": return "bg-fuchsia-500/20 text-fuchsia-200";
-      case "startup": return "bg-orange-500/20 text-orange-200";
-      default: return "bg-white/10 text-white/80";
+      case "fundraising": return "bg-purple-50 text-purple-700";
+      case "grit": return "bg-pink-50 text-pink-700";
+      case "growth": return "bg-blue-50 text-blue-700";
+      case "mindset": return "bg-fuchsia-50 text-fuchsia-700";
+      case "startup": return "bg-orange-50 text-orange-700";
+      default: return "bg-gray-100 text-gray-800";
     }
   };
 
   // Toast animated style
   const toastStyle = useAnimatedStyle(() => ({ opacity: toastOpacity.value }));
 
+  // Play press micro-interaction
+  const playScale = useSharedValue(1);
+  const playScaleStyle = useAnimatedStyle(() => ({ transform: [{ scale: playScale.value }] }));
+
   return (
-    <View className="px-4">
-      {/* Neon Glass Card */}
+    <View className="px-6">
+      {/* Light Glass Card */}
       <View className="relative">
-        <LinearGradient
-          colors={["#1B102B", "#0E0A17"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{ borderRadius: 20 }}
+        <View
+          className="rounded-2xl"
+          style={{
+            borderRadius: 20,
+            backgroundColor: "#FFFFFF",
+            borderWidth: 1,
+            borderColor: "#E6E3DA",
+            padding: 20,
+            shadowColor: "#000",
+            shadowOpacity: 0.08,
+            shadowRadius: 12,
+            shadowOffset: { width: 0, height: 6 },
+          }}
         >
-          <View
-            className="rounded-2xl p-6"
-            style={{
-              borderRadius: 20,
-              padding: 24,
-              borderWidth: 1,
-              borderColor: "rgba(192, 132, 252, 0.2)",
-              shadowColor: "#A855F7",
-              shadowOpacity: 0.35,
-              shadowRadius: 24,
-              shadowOffset: { width: 0, height: 8 },
-            }}
-          >
-            {/* Header */}
-            <View className="flex-row items-center justify-between mb-4">
-              {showCategory && (
-                <View className={cn("px-3 py-1 rounded-full", getCategoryColor(banger.category))}>
-                  <Text className="text-[10px] font-semibold capitalize">{banger.category}</Text>
-                </View>
-              )}
-              {banger.isRare && (
-                <View className="bg-yellow-500/20 px-3 py-1 rounded-full">
-                  <Text className="text-yellow-200 text-[10px] font-semibold">⭐ Rare</Text>
-                </View>
-              )}
-            </View>
-
-            {/* Quote */}
-            <Text className="text-white text-xl leading-8 font-medium mb-6">
-              "{banger.text}"
-            </Text>
-
-            {/* Attribution band */}
-            <View className="overflow-hidden rounded-xl">
-              <LinearGradient
-                colors={["rgba(255,255,255,0.06)", "rgba(255,255,255,0.02)"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={{ paddingVertical: 12, paddingHorizontal: 14 }}
-              >
-                <Text className="text-white/70 text-right italic text-xs">— Greg Isenberg</Text>
-              </LinearGradient>
-            </View>
-
-            {/* Floating Play Button */}
-            <View style={{ height: 28 }} />
+          {/* Header */}
+          <View className="flex-row items-center justify-between" style={{ marginBottom: 12 }}>
+            {showCategory && (
+              <View className={cn("px-3 py-1 rounded-full", getCategoryColor(banger.category))}>
+                <Text className="text-[11px] font-semibold capitalize">{banger.category}</Text>
+              </View>
+            )}
+            {banger.isRare && (
+              <View className="px-3 py-1 rounded-full" style={{ backgroundColor: "#FEF3C7" }}>
+                <Text className="text-[11px] font-semibold" style={{ color: "#92400E" }}>⭐ Rare</Text>
+              </View>
+            )}
           </View>
-        </LinearGradient>
 
+          {/* Quote */}
+          <Text className="text-xl leading-8 font-medium" style={{ color: "#111111", marginBottom: 16 }}>
+            "{banger.text}"
+          </Text>
+
+          {/* Attribution strip */}
+          <View style={{ paddingTop: 12, borderTopWidth: 1, borderColor: "#E6E3DA" }}>
+            <Text className="text-xs italic" style={{ color: "#6B7280", textAlign: "right" }}>— Greg Isenberg</Text>
+          </View>
+
+          {/* Spacer for floating Play */}
+          <View style={{ height: 24 }} />
+        </View>
+
+        {/* Floating Play with waves */}
         <View style={{ position: "absolute", left: 0, right: 0, bottom: -24, alignItems: "center" }}>
           <View style={{ position: "absolute", top: -18 }}>
-            <AnimatedWaveBars active={isPlaying} width={80} height={30} color="#C084FC" />
+            <AnimatedWaveBars active={isPlaying} width={80} height={28} color="#FF7A1A" />
           </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={isPlaying ? "Pause audio" : "Play audio"}
-            onPress={handlePlayAudio}
-            className="items-center justify-center"
-            style={{
-              width: 64,
-              height: 64,
-              borderRadius: 32,
-              backgroundColor: "#7C3AED",
-              shadowColor: "#A855F7",
-              shadowOpacity: 0.6,
-              shadowRadius: 16,
-              shadowOffset: { width: 0, height: 8 },
-              borderWidth: 2,
-              borderColor: "rgba(255,255,255,0.2)",
-            }}
-          >
-            <Ionicons name={isPlaying ? "pause" : "play"} size={28} color="white" />
-          </Pressable>
+          <Animated.View style={[playScaleStyle]}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={isPlaying ? "Pause audio" : "Play audio"}
+              onPressIn={() => { playScale.value = withTiming(0.96, { duration: 90 }); }}
+              onPressOut={() => { playScale.value = withTiming(1, { duration: 120 }); }}
+              onPress={handlePlayAudio}
+              className="items-center justify-center"
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: 32,
+                overflow: "hidden",
+                shadowColor: "#FF7A1A",
+                shadowOpacity: 0.3,
+                shadowRadius: 16,
+                shadowOffset: { width: 0, height: 6 },
+                borderWidth: 1,
+                borderColor: "#FFD3B0",
+              }}
+            >
+              <LinearGradient
+                colors={["#FF8C33", "#FF7A1A"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{ position: "absolute", inset: 0, borderRadius: 32 }}
+              />
+              <Ionicons name={isPlaying ? "pause" : "play"} size={28} color="white" />
+            </Pressable>
+          </Animated.View>
         </View>
       </View>
 
       {/* Action Bar */}
-      <View className="mt-12 flex-row items-center justify-evenly">
+      <View className="flex-row items-center justify-evenly" style={{ marginTop: 40 }}>
         <Pressable
           onPress={handleCopy}
           accessibilityLabel="Copy quote"
           style={{ alignItems: "center", padding: 8 }}
           hitSlop={12}
         >
-          <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: "rgba(255,255,255,0.06)", borderWidth: 1, borderColor: "rgba(255,255,255,0.12)" }}>
-            <Ionicons name="copy-outline" size={20} color="#E5E7EB" />
+          <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E6E3DA" }}>
+            <Ionicons name="copy-outline" size={20} color="#374151" />
           </View>
-          <Text className="text-white/70 text-xs mt-2">Copy</Text>
+          <Text className="text-xs mt-2" style={{ color: "#6B7280" }}>Copy</Text>
         </Pressable>
 
         <Pressable
@@ -200,10 +202,10 @@ export default function BangerCard({ banger, showCategory = true }: BangerCardPr
           style={{ alignItems: "center", padding: 8 }}
           hitSlop={12}
         >
-          <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: "rgba(255,255,255,0.06)", borderWidth: 1, borderColor: "rgba(255,255,255,0.12)" }}>
-            <Ionicons name={isFavorite ? "heart" : "heart-outline"} size={20} color={isFavorite ? "#FCA5A5" : "#E5E7EB"} />
+          <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E6E3DA" }}>
+            <Ionicons name={isFavorite ? "heart" : "heart-outline"} size={20} color={isFavorite ? "#EF4444" : "#374151"} />
           </View>
-          <Text className="text-white/70 text-xs mt-2">Favorite</Text>
+          <Text className="text-xs mt-2" style={{ color: "#6B7280" }}>Favorite</Text>
         </Pressable>
 
         <Pressable
@@ -212,19 +214,19 @@ export default function BangerCard({ banger, showCategory = true }: BangerCardPr
           style={{ alignItems: "center", padding: 8 }}
           hitSlop={12}
         >
-          <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: "rgba(255,255,255,0.06)", borderWidth: 1, borderColor: "rgba(255,255,255,0.12)" }}>
-            <Ionicons name="share-outline" size={20} color="#E5E7EB" />
+          <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E6E3DA" }}>
+            <Ionicons name="share-outline" size={20} color="#374151" />
           </View>
-          <Text className="text-white/70 text-xs mt-2">Share</Text>
+          <Text className="text-xs mt-2" style={{ color: "#6B7280" }}>Share</Text>
         </Pressable>
       </View>
 
       {/* Toast */}
       {toast ? (
         <Animated.View
-          style={[{ marginTop: 12, alignSelf: "center", paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, backgroundColor: "rgba(17,17,17,0.9)", borderWidth: 1, borderColor: "rgba(255,255,255,0.12)" }, toastStyle]}
+          style={[{ marginTop: 12, alignSelf: "center", paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E6E3DA", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } }, toastStyle]}
         >
-          <Text className="text-white text-xs">{toast}</Text>
+          <Text className="text-xs" style={{ color: "#111111" }}>{toast}</Text>
         </Animated.View>
       ) : null}
 
