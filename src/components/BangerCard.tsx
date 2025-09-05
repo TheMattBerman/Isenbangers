@@ -1,16 +1,14 @@
 import React, { useState } from "react";
 import { View, Text, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import * as Speech from "expo-speech";
 import * as Haptics from "expo-haptics";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
-import { LinearGradient } from "expo-linear-gradient";
 
 import { Banger } from "../types/banger";
 import { useAppStore } from "../state/appStore";
 import { cn } from "../utils/cn";
 import ShareModal from "./ShareModal";
-import AnimatedWaveBars from "./AnimatedWaveBars";
+import AudioMiniPlayer from "./AudioMiniPlayer";
 import { shareAsText } from "../utils/sharing";
 
 interface BangerCardProps {
@@ -19,7 +17,6 @@ interface BangerCardProps {
 }
 
 export default function BangerCard({ banger, showCategory = true }: BangerCardProps) {
-  const [isPlaying, setIsPlaying] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const toastOpacity = useSharedValue(0);
@@ -36,31 +33,7 @@ export default function BangerCard({ banger, showCategory = true }: BangerCardPr
     }, 1400);
   };
 
-  const handlePlayAudio = async () => {
-    try {
-      if (isPlaying) {
-        Speech.stop();
-        setIsPlaying(false);
-        Haptics.selectionAsync();
-        return;
-      }
-      setIsPlaying(true);
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      Speech.speak(banger.text, {
-        rate: 0.9,
-        pitch: 1.0,
-        onDone: () => setIsPlaying(false),
-        onStopped: () => setIsPlaying(false),
-        onError: () => {
-          setIsPlaying(false);
-          showToast("Could not play audio");
-        },
-      });
-    } catch (e) {
-      setIsPlaying(false);
-      showToast("Could not play audio");
-    }
-  };
+
 
   const handleFavorite = () => {
     if (isFavorite) {
@@ -95,11 +68,9 @@ export default function BangerCard({ banger, showCategory = true }: BangerCardPr
   const toastStyle = useAnimatedStyle(() => ({ opacity: toastOpacity.value }));
 
   // Press micro-interactions
-  const playScale = useSharedValue(1);
   const copyScale = useSharedValue(1);
   const favScale = useSharedValue(1);
   const shareScale = useSharedValue(1);
-  const playScaleStyle = useAnimatedStyle(() => ({ transform: [{ scale: playScale.value }] }));
 
   return (
     <View className="px-6">
@@ -143,46 +114,13 @@ export default function BangerCard({ banger, showCategory = true }: BangerCardPr
             <Text className="text-xs italic" style={{ color: "#6B7280", textAlign: "right" }}>— Greg Isenberg</Text>
           </View>
 
-          {/* Spacer for floating Play */}
-          <View style={{ height: 24 }} />
+          {/* Audio mini player under quote */}
+          <View style={{ marginTop: 12, alignItems: "center" }}>
+            <AudioMiniPlayer text={banger.text} />
+          </View>
         </View>
 
-        {/* Floating Play with waves */}
-        <View style={{ position: "absolute", left: 0, right: 0, bottom: -24, alignItems: "center" }}>
-          <View style={{ position: "absolute", top: -18 }}>
-            <AnimatedWaveBars active={isPlaying} width={80} height={28} color="#FF7A1A" />
-          </View>
-          <Animated.View style={[playScaleStyle]}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={isPlaying ? "Pause audio" : "Play audio"}
-              onPressIn={() => { playScale.value = withTiming(0.96, { duration: 90 }); }}
-              onPressOut={() => { playScale.value = withTiming(1, { duration: 120 }); }}
-              onPress={handlePlayAudio}
-              className="items-center justify-center"
-              style={{
-                width: 64,
-                height: 64,
-                borderRadius: 32,
-                overflow: "hidden",
-                shadowColor: "#FF7A1A",
-                shadowOpacity: 0.3,
-                shadowRadius: 16,
-                shadowOffset: { width: 0, height: 6 },
-                borderWidth: 1,
-                borderColor: "#FFD3B0",
-              }}
-            >
-              <LinearGradient
-                colors={["#FF8C33", "#FF7A1A"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={{ position: "absolute", inset: 0, borderRadius: 32 }}
-              />
-              <Ionicons name={isPlaying ? "pause" : "play"} size={28} color="white" />
-            </Pressable>
-          </Animated.View>
-        </View>
+
       </View>
 
       {/* Action Bar */}
