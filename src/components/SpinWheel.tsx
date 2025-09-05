@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useCallback } from "react";
+import React, { useMemo, useRef, useCallback, useImperativeHandle, forwardRef } from "react";
 import { View, Pressable, Text, Dimensions } from "react-native";
 import Animated, {
   useSharedValue,
@@ -36,7 +36,8 @@ interface SpinWheelProps {
   isSpinning: boolean;
 }
 
-export default function SpinWheel({ onSpinComplete, isSpinning }: SpinWheelProps) {
+export type SpinWheelHandle = { startSpin: () => void; isBusy: () => boolean };
+const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete, isSpinning }, ref) => {
   const rotation = useSharedValue(0);
   const savedRotationDeg = useSharedValue(0);
   const startAngleDeg = useSharedValue(0);
@@ -119,6 +120,15 @@ export default function SpinWheel({ onSpinComplete, isSpinning }: SpinWheelProps
       runOnJS(handleSpinComplete)(rare);
     });
   };
+
+  useImperativeHandle(ref, () => ({
+    startSpin: () => {
+      spin();
+    },
+    isBusy: () => {
+      return localSpinningRef.current;
+    },
+  }));
 
   // Colors
   const rimOuter = "#1f2937";
@@ -307,4 +317,5 @@ export default function SpinWheel({ onSpinComplete, isSpinning }: SpinWheelProps
       </Pressable>
     </View>
   );
-}
+});
+export default SpinWheel;

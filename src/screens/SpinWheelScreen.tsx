@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -7,11 +7,11 @@ import BangerCard from "../components/BangerCard";
 import { getRandomBanger, getRareBanger } from "../data/bangers";
 import { Banger } from "../types/banger";
 
+type WheelHandle = { startSpin: () => void; isBusy: () => boolean };
 export default function SpinWheelScreen() {
   const [isSpinning, setIsSpinning] = useState(false);
   const [selectedBanger, setSelectedBanger] = useState<Banger | null>(null);
-
-  // Debug state is shown via UI; removed noisy logs.
+  const wheelRef = useRef<WheelHandle | null>(null);
 
   const handleSpinComplete = (isRare: boolean) => {
     setIsSpinning(false);
@@ -22,6 +22,9 @@ export default function SpinWheelScreen() {
   const handleNewSpin = () => {
     setSelectedBanger(null);
     setIsSpinning(true);
+    setTimeout(() => {
+      wheelRef.current?.startSpin();
+    }, 50);
   };
 
 
@@ -88,6 +91,7 @@ export default function SpinWheelScreen() {
               }}
             >
               <SpinWheel 
+                ref={wheelRef as any}
                 onSpinComplete={handleSpinComplete}
                 isSpinning={isSpinning}
               />
