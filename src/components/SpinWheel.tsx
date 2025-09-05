@@ -1,5 +1,5 @@
-import React, { useMemo, useRef, useCallback, useImperativeHandle, forwardRef } from "react";
-import { View, Pressable, Text, Dimensions } from "react-native";
+import React, { useMemo, useRef, useCallback, useImperativeHandle, forwardRef, useState } from "react";
+import { View, Pressable, Text, Dimensions, Image } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -24,6 +24,7 @@ import {
   BULB_COUNT,
   buildSegmentPath,
   RARE_PANEL_INDEXES,
+  polarToCartesian,
 } from "../utils/spinWheelMath";
 
 const { width } = Dimensions.get("window");
@@ -31,14 +32,17 @@ const WHEEL_SIZE = Math.min(width * 0.9, 360);
 const RADIUS = WHEEL_SIZE / 2;
 const INNER_RADIUS = RADIUS * 0.55;
 
+import { getDefaultSpinSections, SpinSection } from "../data/spinSections";
+
 interface SpinWheelProps {
   onSpinComplete: (isRare: boolean) => void;
   isSpinning: boolean;
   onSpinStart?: () => void;
+  sections?: SpinSection[];
 }
 
 export type SpinWheelHandle = { startSpin: () => void; isBusy: () => boolean };
-const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete, isSpinning, onSpinStart }, ref) => {
+const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete, isSpinning, onSpinStart, sections = getDefaultSpinSections() }, ref) => {
   const rotation = useSharedValue(0);
   const savedRotationDeg = useSharedValue(0);
   const startAngleDeg = useSharedValue(0);
@@ -77,6 +81,8 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
     });
   }, [panelAngle]);
 
+  const [highlightIdx, setHighlightIdx] = useState<number | null>(null);
+
   const bulbs = useMemo(() => {
     const cx = RADIUS;
     const cy = RADIUS;
@@ -102,6 +108,7 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
     if (isSpinning || localSpinningRef.current) return;
     localSpinningRef.current = true;
     onSpinStart?.();
+    setHighlightIdx(null);
     spinning.value = 1;
 
     const turns = 3 + Math.random() * 1.5; // 3 to 4.5 turns
@@ -127,6 +134,7 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
       spinning.value = 0;
       
       runOnJS(handleHapticFeedback)();
+      runOnJS(setHighlightIdx)(index);
       runOnJS(handleSpinComplete)(rare);
     });
   };
@@ -163,6 +171,7 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
       if (spinning.value === 1) return;
       spinning.value = 1;
       if (onSpinStart) runOnJS(onSpinStart)();
+      runOnJS(setHighlightIdx)(null);
       runOnJS(setLocalSpinTrue)();
 
       const turns = 3 + Math.random() * 1.5;
@@ -181,6 +190,7 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
         const rare = RARE_INDEXES.indexOf(index) !== -1;
         spinning.value = 0;
         runOnJS(handleHapticFeedback)();
+        runOnJS(setHighlightIdx)(index);
         runOnJS(handleSpinComplete)(rare);
       });
     });
@@ -208,6 +218,7 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
       if (spinning.value === 1) return;
       spinning.value = 1;
       if (onSpinStart) runOnJS(onSpinStart)();
+      runOnJS(setHighlightIdx)(null);
       runOnJS(setLocalSpinTrue)();
 
       const turns = 3 + Math.random() * 1.5;
@@ -226,6 +237,7 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
         const rare = RARE_INDEXES.indexOf(index) !== -1;
         spinning.value = 0;
         runOnJS(handleHapticFeedback)();
+        runOnJS(setHighlightIdx)(index);
         runOnJS(handleSpinComplete)(rare);
       });
     });
@@ -306,6 +318,33 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
               <Circle cx={RADIUS} cy={RADIUS} r={INNER_RADIUS * 0.45} color="#111827" />
             </Group>
           </Canvas>
+
+          {/* Section posters */}
+          {sections.map((s, i) => {
+            const mid = i * panelAngle + panelAngle / 2 - 90; // center angle
+            const outer = RADIUS * 0.82;
+            const inner = INNER_RADIUS + 12;
+            const rMid = (outer + inner) / 2;
+            const slotH = Math.max(64, (outer - inner) * 0.9);
+            const posterH = slotH;
+            const posterW = Math.round(posterH * 0.66);
+            const center = polarToCartesian(RADIUS, RADIUS, rMid, mid);
+            const left = center.x - posterW / 2;
+            const top = center.y - posterH / 2;
+            const isHighlight = highlightIdx === i;
+            return (
+              <View key={s.id}
+                pointerEvents="none"
+                style={{ position: "absolute", left, top, width: posterW, height: posterH, alignItems: "center", justifyContent: "center" }}
+              >
+                <View style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, backgroundColor: "white", borderRadius: 14, opacity: isHighlight ? 1 : 0.95 }} />
+                <Image source={{ uri: s.imageUri }}
+                  style={{ width: posterW - 10, height: posterH - 10, borderRadius: 10, transform: [{ scale: isHighlight ? 1.06 : 1 }] }}
+                  resizeMode="cover"
+                />
+              </View>
+            );
+          })}
         </Animated.View>
       </GestureDetector>
 

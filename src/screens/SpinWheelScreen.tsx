@@ -3,6 +3,7 @@ import { View, Text, ScrollView, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import SpinWheel from "../components/SpinWheel";
+import { getDefaultSpinSections } from "../data/spinSections";
 import BangerCard from "../components/BangerCard";
 import { getRandomBanger, getRareBanger } from "../data/bangers";
 import { Banger } from "../types/banger";
@@ -94,6 +95,7 @@ export default function SpinWheelScreen() {
                 onSpinStart={() => setIsSpinning(true)}
                 onSpinComplete={handleSpinComplete}
                 isSpinning={isSpinning}
+                sections={getDefaultSpinSections()}
               />
             </View>
           )}
