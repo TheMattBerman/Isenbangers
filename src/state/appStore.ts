@@ -14,6 +14,9 @@ interface AppState {
   // Daily banger tracking
   dailyBangerViewed: boolean;
   lastDailyBangerDate: string | null;
+  firstViewAtMs: number | null; // for 24h countdown
+  ensureTodayStart: () => void;
+  clearTodayStart: () => void;
   
   // UI / Streak modal guard
   lastStreakShownDate: string | null;
@@ -37,6 +40,7 @@ export const useAppStore = create<AppState>()(
       favoriteBangers: [],
       dailyBangerViewed: false,
       lastDailyBangerDate: null,
+      firstViewAtMs: null,
       lastStreakShownDate: null,
       
       incrementStreak: () => {
@@ -80,6 +84,19 @@ export const useAppStore = create<AppState>()(
         set((state) => ({
           totalBangersViewed: state.totalBangersViewed + 1
         })),
+
+      ensureTodayStart: () => {
+        const now = Date.now();
+        const today = new Date().toDateString();
+        const { firstViewAtMs, lastDailyBangerDate } = get();
+        // Reset if crossing day or not set
+        if (!firstViewAtMs || lastDailyBangerDate !== today) {
+          set({ firstViewAtMs: now, lastDailyBangerDate: today });
+        }
+      },
+
+      clearTodayStart: () => set({ firstViewAtMs: null }),
+
       setLastStreakShownToday: () => {
         const today = new Date().toDateString();
         set({ lastStreakShownDate: today });
