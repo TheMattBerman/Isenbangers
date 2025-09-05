@@ -1,5 +1,5 @@
-import React, { useMemo, useRef, useCallback, useImperativeHandle, forwardRef, useState } from "react";
-import { View, Pressable, Text, Dimensions, Image } from "react-native";
+import React, { useMemo, useRef, useCallback, useImperativeHandle, forwardRef, useState, useEffect } from "react";
+import { View, Pressable, Text, Dimensions } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -7,6 +7,7 @@ import Animated, {
   runOnJS,
   Easing,
 } from "react-native-reanimated";
+import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import {
@@ -82,6 +83,16 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
   }, [panelAngle]);
 
   const [highlightIdx, setHighlightIdx] = useState<number | null>(null);
+
+  // Preload section images to avoid flashes
+  useEffect(() => {
+    try {
+      sections.forEach((s) => {
+        // @ts-ignore expo-image provides prefetch
+        Image.prefetch?.(s.imageUri);
+      });
+    } catch {}
+  }, [sections]);
 
   const bulbs = useMemo(() => {
     const cx = RADIUS;
@@ -319,28 +330,30 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
             </Group>
           </Canvas>
 
-          {/* Section posters */}
+          {/* Section avatars */}
           {sections.map((s, i) => {
             const mid = i * panelAngle + panelAngle / 2 - 90; // center angle
             const outer = RADIUS * 0.82;
             const inner = INNER_RADIUS + 12;
             const rMid = (outer + inner) / 2;
-            const slotH = Math.max(64, (outer - inner) * 0.9);
-            const posterH = slotH;
-            const posterW = Math.round(posterH * 0.66);
+            const thickness = outer - inner;
+            const size = Math.max(56, Math.min(84, thickness * 0.9));
             const center = polarToCartesian(RADIUS, RADIUS, rMid, mid);
-            const left = center.x - posterW / 2;
-            const top = center.y - posterH / 2;
+            const left = center.x - size / 2;
+            const top = center.y - size / 2;
             const isHighlight = highlightIdx === i;
             return (
               <View key={s.id}
                 pointerEvents="none"
-                style={{ position: "absolute", left, top, width: posterW, height: posterH, alignItems: "center", justifyContent: "center" }}
+                style={{ position: "absolute", left, top, width: size, height: size, alignItems: "center", justifyContent: "center" }}
               >
-                <View style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, backgroundColor: "white", borderRadius: 14, opacity: isHighlight ? 1 : 0.95 }} />
-                <Image source={{ uri: s.imageUri }}
-                  style={{ width: posterW - 10, height: posterH - 10, borderRadius: 10, transform: [{ scale: isHighlight ? 1.06 : 1 }] }}
-                  resizeMode="cover"
+                <View style={{ position: "absolute", width: size, height: size, borderRadius: size / 2, backgroundColor: "#FFFFFF" }} />
+                <Image
+                  source={{ uri: s.imageUri }}
+                  style={{ width: size - 8, height: size - 8, borderRadius: (size - 8) / 2, transform: [{ scale: isHighlight ? 1.06 : 1 }] }}
+                  contentFit="cover"
+                  transition={150}
+                  cachePolicy="memory-disk"
                 />
               </View>
             );
