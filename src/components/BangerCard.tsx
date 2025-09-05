@@ -88,7 +88,7 @@ export default function BangerCard({ banger, showCategory = true }: BangerCardPr
         shadowRadius: 8,
         elevation: 4,
         borderWidth: 1,
-        borderColor: '#f3f4f6',
+         borderColor: '#E6E3DA',
         minHeight: 200,
       }}
     >
@@ -155,7 +155,7 @@ export default function BangerCard({ banger, showCategory = true }: BangerCardPr
         style={{
           fontSize: 18,
           lineHeight: 28,
-          color: '#1f2937',
+          color: '#111111',
           marginBottom: 24,
           fontWeight: '500',
         }}
@@ -192,7 +192,7 @@ export default function BangerCard({ banger, showCategory = true }: BangerCardPr
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            backgroundColor: '#f97316',
+            backgroundColor: '#FF7A1A',
             paddingHorizontal: 16,
             paddingVertical: 12,
             borderRadius: 12,

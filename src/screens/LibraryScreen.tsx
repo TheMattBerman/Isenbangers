@@ -51,22 +51,22 @@ export default function LibraryScreen() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1 bg-gregBg">
       {/* Header */}
-      <View className="bg-white px-6 py-4 border-b border-gray-200">
-        <Text className="text-2xl font-bold text-gray-900 mb-4">
+      <View className="bg-white px-6 py-4 border-b border-gregBorder">
+        <Text className="text-2xl font-bold text-gregText mb-4">
           Banger Library
         </Text>
         
         {/* Search Bar */}
-        <View className="flex-row items-center bg-gray-100 rounded-xl px-4 py-3 mb-4">
+        <View className="flex-row items-center bg-white rounded-xl px-4 py-3 mb-4 border border-gregBorder">
           <Ionicons name="search" size={20} color="#6b7280" />
           <TextInput
-            className="flex-1 ml-3 text-gray-900"
+             className="flex-1 ml-3 text-gregText"
             placeholder="Search bangers..."
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholderTextColor="#6b7280"
+             placeholderTextColor="#6B7280"
           />
           {searchQuery.length > 0 && (
             <Pressable onPress={() => setSearchQuery("")}>
@@ -86,9 +86,9 @@ export default function LibraryScreen() {
               <Pressable
                 key={category}
                 onPress={() => setSelectedCategory(category)}
-                className={`px-4 py-2 rounded-full mr-2 ${
+                 className={`px-4 py-2 rounded-full mr-2 ${
                   selectedCategory === category
-                    ? "bg-orange-500"
+                    ? "bg-gregPrimary-500"
                     : "bg-gray-200"
                 }`}
               >

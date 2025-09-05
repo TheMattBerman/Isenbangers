@@ -12,10 +12,19 @@ module.exports = {
     // NOTE to AI: You can extend the theme with custom colors or styles here.
     extend: {
       // For example, you can add a primary or secondary color here.
-      // colors: {
-      //   primary: "#INSERT_VALID_HEX_CODE",
-      //   secondary: "#INSERT_VALID_HEX_CODE",
-      // },
+      colors: {
+        gregPrimary: {
+          400: "#FF8C33",
+          500: "#FF7A1A",
+          600: "#E56600",
+        },
+        gregAccent: "#C6F51D",
+        gregBg: "#F5F3EE",
+        gregSurface: "#FFFFFF",
+        gregBorder: "#E6E3DA",
+        gregText: "#111111",
+        gregMuted: "#6B7280",
+      },
       fontSize: {
         xs: "10px",
         sm: "12px",

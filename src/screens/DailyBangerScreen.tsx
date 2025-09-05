@@ -16,9 +16,7 @@ export default function DailyBangerScreen() {
     lastDailyBangerDate 
   } = useAppStore();
 
-  // Debug logging
-  console.log("DailyBangerScreen - Today's banger:", todaysBanger);
-  console.log("DailyBangerScreen - Current streak:", currentStreak);
+  // Debug state is visible in UI; remove noisy logs.
 
   // Validate data
   if (!todaysBanger) {
@@ -45,9 +43,9 @@ export default function DailyBangerScreen() {
       className="flex-1"
       style={{ flex: 1 }}
     >
-      <View style={{ flex: 1, backgroundColor: '#f97316' }}>
+      <View style={{ flex: 1, backgroundColor: '#F5F3EE' }}>
         <LinearGradient
-          colors={["#f97316", "#ea580c"]}
+          colors={["#FFFFFF", "#F5F3EE"]}
           className="flex-1"
           style={{ flex: 1 }}
           start={{ x: 0, y: 0 }}
@@ -68,9 +66,9 @@ export default function DailyBangerScreen() {
             }}
           >
             <Text 
-              className="text-white text-3xl font-bold text-center mb-2"
+              className="text-3xl font-bold text-center mb-2"
               style={{
-                color: 'white',
+                color: '#111111',
                 fontSize: 32,
                 fontWeight: 'bold',
                 textAlign: 'center',
@@ -80,9 +78,9 @@ export default function DailyBangerScreen() {
               Today's Banger
             </Text>
             <Text 
-              className="text-orange-100 text-center text-lg"
+              className="text-center text-lg"
               style={{
-                color: '#fed7aa',
+                color: '#6B7280',
                 textAlign: 'center',
                 fontSize: 18,
               }}
@@ -98,13 +96,15 @@ export default function DailyBangerScreen() {
 
           {/* Streak Counter */}
           <View 
-            className="mx-6 mb-6 bg-white/20 rounded-2xl p-4"
+            className="mx-6 mb-6 rounded-2xl p-4"
             style={{
               marginHorizontal: 24,
               marginBottom: 24,
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              backgroundColor: '#FFFFFF',
               borderRadius: 16,
               padding: 16,
+              borderWidth: 1,
+              borderColor: '#E6E3DA',
             }}
           >
             <View 
@@ -116,9 +116,9 @@ export default function DailyBangerScreen() {
               }}
             >
               <Text 
-                className="text-white text-lg font-semibold"
+                className="text-lg font-semibold"
                 style={{
-                  color: 'white',
+                  color: '#111111',
                   fontSize: 18,
                   fontWeight: '600',
                 }}

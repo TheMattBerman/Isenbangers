@@ -34,9 +34,9 @@ export default function SpinWheelScreen() {
       className="flex-1"
       style={{ flex: 1 }}
     >
-      <View style={{ flex: 1, backgroundColor: '#8b5cf6' }}>
+      <View style={{ flex: 1, backgroundColor: '#F5F3EE' }}>
         <LinearGradient
-          colors={["#8b5cf6", "#7c3aed"]}
+          colors={["#FFFFFF", "#F5F3EE"]}
           className="flex-1"
           style={{ flex: 1 }}
           start={{ x: 0, y: 0 }}
@@ -57,9 +57,9 @@ export default function SpinWheelScreen() {
             }}
           >
             <Text 
-              className="text-white text-3xl font-bold text-center mb-2"
+              className="text-3xl font-bold text-center mb-2"
               style={{
-                color: 'white',
+                color: '#111111',
                 fontSize: 32,
                 fontWeight: 'bold',
                 textAlign: 'center',
@@ -69,9 +69,9 @@ export default function SpinWheelScreen() {
               Spin the Wheel
             </Text>
             <Text 
-              className="text-purple-100 text-center text-lg"
+              className="text-center text-lg"
               style={{
-                color: '#e9d5ff',
+                color: '#6B7280',
                 textAlign: 'center',
                 fontSize: 18,
               }}
@@ -122,7 +122,7 @@ export default function SpinWheelScreen() {
                 <Pressable
                   onPress={handleNewSpin}
                   style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    backgroundColor: '#FF7A1A',
                     borderRadius: 16,
                     padding: 16,
                   }}
@@ -144,36 +144,38 @@ export default function SpinWheelScreen() {
 
           {/* Instructions */}
           {!selectedBanger && !isSpinning && (
-            <View 
-              className="px-6 pb-8"
-              style={{
-                paddingHorizontal: 24,
-                paddingBottom: 32,
-              }}
-            >
               <View 
-                className="bg-white/20 rounded-2xl p-4"
+                className="px-6 pb-8"
                 style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                  borderRadius: 16,
-                  padding: 16,
+                  paddingHorizontal: 24,
+                  paddingBottom: 32,
                 }}
               >
-                <Text 
-                  className="text-white text-center text-sm"
+                <View 
+                  className="rounded-2xl p-4"
                   style={{
-                    color: 'white',
-                    textAlign: 'center',
-                    fontSize: 12,
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: 16,
+                    padding: 16,
+                    borderWidth: 1,
+                    borderColor: '#E6E3DA',
                   }}
                 >
-                  Spin the wheel to discover random bangers!
-                  {"\n"}Use one finger to rotate or tap Spin.
-                  {"\n"}Yellow segments give you rare bangers! ⭐
-                </Text>
+                  <Text 
+                    className="text-center text-sm"
+                    style={{
+                      color: '#111111',
+                      textAlign: 'center',
+                      fontSize: 12,
+                    }}
+                  >
+                    Spin the wheel to discover random bangers!
+                    {"\n"}Use one finger to rotate or tap Spin.
+                    {"\n"}Rare slots sparkle in green ⭐
+                  </Text>
+                </View>
               </View>
-            </View>
-          )}
+           )}
         </ScrollView>
         </LinearGradient>
       </View>

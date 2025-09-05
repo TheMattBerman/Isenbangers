@@ -149,10 +149,10 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
   }));
 
   // Colors
-  const rimOuter = "#1f2937";
-  const rimInner = "#111827";
-  const panelStart = "#2a2e6e";
-  const panelEnd = "#3b46a0";
+  const rimOuter = "#D6D3CA";
+  const rimInner = "#CFCBBF";
+  const panelStart = "#2F3A52";
+  const panelEnd = "#3C4B6E";
 
   // Gesture: two-finger rotation to pre-rotate and start spin on release
   const rotationGesture = Gesture.Rotation()
@@ -304,10 +304,10 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
             <Group>
               {bulbs.map((b, i) => (
                 <Group key={i}>
-                  <Circle cx={b.x} cy={b.y} r={5} color="#fbbf24">
+                  <Circle cx={b.x} cy={b.y} r={5} color="#FFE79A">
                     <BlurMask blur={8} style="normal" />
                   </Circle>
-                  <Circle cx={b.x} cy={b.y} r={3} color="#fde68a" />
+                  <Circle cx={b.x} cy={b.y} r={3} color="#FFF2C2" />
                 </Group>
               ))}
             </Group>
@@ -359,7 +359,7 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
           borderRadius: 9999,
           flexDirection: "row",
           alignItems: "center",
-          backgroundColor: isSpinning || localSpinningRef.current ? "#9ca3af" : "#f97316",
+          backgroundColor: isSpinning || localSpinningRef.current ? "#9ca3af" : "#FF7A1A",
         }}
       >
         <Ionicons name="refresh" size={22} color="white" />
