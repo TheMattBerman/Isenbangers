@@ -12,6 +12,7 @@ import StreakModal, { buildWeekRow } from "../components/StreakModal";
 import Countdown24h from "../components/Countdown24h";
 import UnlockMoreModal from "../components/UnlockMoreModal";
 import DailyProgressBar from "../components/DailyProgressBar";
+import DailyProgressBar from "../components/DailyProgressBar";
 
 export default function DailyBangerScreen() {
   const insets = useSafeAreaInsets();
@@ -126,7 +127,11 @@ export default function DailyBangerScreen() {
             style={{ paddingHorizontal: 24, paddingBottom: 32 }}
           >
             {firstViewAtMs ? (
-              <Countdown24h endAtMs={firstViewAtMs + 24 * 60 * 60 * 1000} />
+              <>
+                <Countdown24h endAtMs={firstViewAtMs + 24 * 60 * 60 * 1000} />
+                <View style={{ height: 6 }} />
+                <DailyProgressBar startAtMs={firstViewAtMs} endAtMs={firstViewAtMs + 24 * 60 * 60 * 1000} />
+              </>
             ) : (
               <Text className="text-gray-600 text-center text-sm" style={{ color: "#6B7280", textAlign: "center", fontSize: 12 }}>
                 Next daily countdown starting…
