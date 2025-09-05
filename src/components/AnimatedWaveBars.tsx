@@ -1,9 +1,7 @@
 import React, { useEffect, useMemo } from "react";
 import { View, ViewStyle } from "react-native";
 import Animated, {
-  Extrapolation,
   cancelAnimation,
-  interpolate,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
@@ -19,67 +17,91 @@ interface AnimatedWaveBarsProps {
   style?: ViewStyle;
 }
 
+function WaveBar({
+  index,
+  total,
+  progress,
+  barWidth,
+  gap,
+  height,
+  color,
+}: {
+  index: number;
+  total: number;
+  progress: Animated.SharedValue<number>;
+  barWidth: number;
+  gap: number;
+  height: number;
+  color: string;
+}) {
+  const stylez = useAnimatedStyle(() => {
+    "worklet";
+    const phase = (index / total) * Math.PI * 2;
+    const s = Math.abs(Math.sin(progress.value * Math.PI * 2 + phase)); // 0..1
+    const h = height * (0.25 + 0.75 * s);
+    return {
+      height: h,
+      opacity: 0.6 + 0.4 * s,
+    };
+  });
+
+  return (
+    <Animated.View
+      style={[
+        {
+          width: barWidth,
+          marginHorizontal: gap / 2,
+          backgroundColor: color,
+          borderRadius: 999,
+          shadowColor: color,
+          shadowOpacity: 0.8,
+          shadowRadius: 6,
+          shadowOffset: { width: 0, height: 0 },
+        },
+        stylez,
+      ]}
+    />
+  );
+}
+
 export default function AnimatedWaveBars({
   active,
   barCount = 7,
   width = 64,
   height = 28,
-  color = "#C084FC", // lavender neon
+  color = "#C084FC",
   style,
 }: AnimatedWaveBarsProps) {
-  const bars = useMemo(() => new Array(barCount).fill(0).map((_, i) => i), [barCount]);
-  const progresses = useMemo(() => bars.map(() => useSharedValue(0)), [bars.length]);
+  const indexes = useMemo(() => Array.from({ length: barCount }, (_, i) => i), [barCount]);
+  const progress = useSharedValue(0);
 
   useEffect(() => {
-    progresses.forEach((p, idx) => {
-      if (active) {
-        // staggered start per bar
-        const start = () => {
-          p.value = withRepeat(withTiming(1, { duration: 700 + idx * 40 }), -1, true);
-        };
-        const t = setTimeout(start, idx * 70);
-        return () => clearTimeout(t);
-      } else {
-        cancelAnimation(p);
-        p.value = 0;
-      }
-    });
+    if (active) {
+      progress.value = withRepeat(withTiming(1, { duration: 900 }), -1, false);
+    } else {
+      cancelAnimation(progress);
+      progress.value = 0;
+    }
+    return () => cancelAnimation(progress);
   }, [active]);
 
   const barWidth = Math.max(2, Math.floor(width / (barCount * 1.4)));
   const gap = Math.max(2, Math.floor(barWidth * 0.6));
 
   return (
-    <View style={[{ width, height, flexDirection: "row", alignItems: "flex-end", justifyContent: "center" }, style]}> 
-      {bars.map((i) => {
-        const progress = progresses[i];
-        const stylez = useAnimatedStyle(() => {
-          const h = interpolate(progress.value, [0, 1], [height * 0.25, height], Extrapolation.CLAMP);
-          const opacity = interpolate(progress.value, [0, 1], [0.6, 1], Extrapolation.CLAMP);
-          return {
-            height: h,
-            opacity,
-          };
-        });
-        return (
-          <Animated.View
-            key={`bar-${i}`}
-            style={[
-              {
-                width: barWidth,
-                marginHorizontal: gap / 2,
-                backgroundColor: color,
-                borderRadius: 999,
-                shadowColor: color,
-                shadowOpacity: 0.8,
-                shadowRadius: 6,
-                shadowOffset: { width: 0, height: 0 },
-              },
-              stylez,
-            ]}
-          />
-        );
-      })}
+    <View style={[{ width, height, flexDirection: "row", alignItems: "flex-end", justifyContent: "center" }, style]}>
+      {indexes.map((i) => (
+        <WaveBar
+          key={`bar-${i}`}
+          index={i}
+          total={barCount}
+          progress={progress}
+          barWidth={barWidth}
+          gap={gap}
+          height={height}
+          color={color}
+        />
+      ))}
     </View>
   );
 }
