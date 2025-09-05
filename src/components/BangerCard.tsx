@@ -83,7 +83,7 @@ export default function BangerCard({ banger, showCategory = true }: BangerCardPr
             backgroundColor: "#FFFFFF",
             borderWidth: 1,
             borderColor: "#E6E3DA",
-            padding: 20,
+            padding: 24,
             shadowColor: "#000",
             shadowOpacity: 0.08,
             shadowRadius: 12,
@@ -105,17 +105,15 @@ export default function BangerCard({ banger, showCategory = true }: BangerCardPr
           </View>
 
           {/* Quote */}
-          <Text className="text-xl leading-8 font-medium" style={{ color: "#111111", marginBottom: 16 }} numberOfLines={6} ellipsizeMode="tail">
+          <Text className="text-xl leading-8 font-medium" style={{ color: "#111111", marginBottom: 8 }} numberOfLines={6} ellipsizeMode="tail">
             "{banger.text}"
           </Text>
 
-          {/* Attribution strip */}
-          <View style={{ paddingTop: 12, borderTopWidth: 1, borderColor: "#E6E3DA" }}>
-            <Text className="text-xs italic" style={{ color: "#6B7280", textAlign: "right" }}>— Greg Isenberg</Text>
-          </View>
+          {/* Attribution */}
+          <Text className="text-xs italic" style={{ color: "#6B7280", textAlign: "right", marginTop: 6 }}>— Greg Isenberg</Text>
 
           {/* Audio mini player under quote */}
-          <View style={{ marginTop: 12, alignItems: "center" }}>
+          <View style={{ marginTop: 16, alignItems: "center" }}>
             <AudioMiniPlayer text={banger.text} />
           </View>
         </View>
