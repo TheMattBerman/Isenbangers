@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, ScrollView } from "react-native";
 import * as Haptics from "expo-haptics";
 
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 
 import BangerCard from "../components/BangerCard";
@@ -11,6 +11,7 @@ import { useAppStore } from "../state/appStore";
 import StreakModal, { buildWeekRow } from "../components/StreakModal";
 
 export default function DailyBangerScreen() {
+  const insets = useSafeAreaInsets();
   const todaysBanger = getTodaysBanger();
   const { 
     currentStreak, 
@@ -93,21 +94,17 @@ export default function DailyBangerScreen() {
           className="flex-1" 
           showsVerticalScrollIndicator={false}
           style={{ flex: 1 }}
-          contentContainerStyle={{ flexGrow: 1 }}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 24 }}
         >
 
 
 
 
-          {/* Banger Card */}
-          <View 
-            className="mb-8"
-            style={{ marginBottom: 32 }}
-          >
-            <BangerCard 
-              banger={todaysBanger} 
-              showCategory={true}
-            />
+          {/* Centered Banger Card */}
+          <View style={{ flex: 1, justifyContent: "center", paddingTop: 24 }}>
+            <View style={{ marginBottom: 32 }}>
+              <BangerCard banger={todaysBanger} showCategory={true} />
+            </View>
           </View>
 
           {/* Motivational Footer */}
