@@ -196,7 +196,7 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
   const panelEnd = "#2A3B6A";
   const panelAltStart = "#202A49";
   const panelAltEnd = "#334877";
-  const dividerColor = "rgba(255,255,255,0.12)";
+  const dividerColor = "rgba(255,255,255,0.10)";
 
   // Clip path to prevent blurs/halos from bleeding outside the wheel
   const clipPath = useMemo(() => {
@@ -359,8 +359,17 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
                     positions={[0, 1]}
                   />
                 </Path>
-                {/* Subtle sheen per panel */}
-                <Path path={path} color="rgba(255,255,255,0.05)" />
+                {/* Subtle vignette per panel for depth */}
+                <Path path={path} color="rgba(0,0,0,0.10)">
+                  <RadialGradient
+                    c={vec(RADIUS, RADIUS)}
+                    r={RADIUS * 0.98}
+                    colors={["rgba(0,0,0,0)", "rgba(0,0,0,0.12)"]}
+                    positions={[0.70, 1]}
+                  />
+                </Path>
+                {/* Hairline highlight on outer edge */}
+                <Path path={path} color="rgba(255,255,255,0.08)" />
               </Group>
             ))}
 
@@ -369,10 +378,10 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
               {new Array(PANEL_COUNT).fill(0).map((_, i) => {
                 const start = i * panelAngle - 90;
                 const p1 = polarToCartesian(RADIUS, RADIUS, RADIUS * 0.94, start);
-                const p2 = polarToCartesian(RADIUS, RADIUS, Math.max(INNER_RADIUS - 2, 0), start);
+                const p2 = polarToCartesian(RADIUS, RADIUS, Math.max(INNER_RADIUS + 6, 0), start);
                 const d = `M ${p1.x} ${p1.y} L ${p2.x} ${p2.y}`;
                 return (
-                  <Path key={`divider-${i}`} path={d} color={dividerColor} style="stroke" strokeWidth={1} />
+                  <Path key={`divider-${i}`} path={d} color={dividerColor} style="stroke" strokeWidth={0.75} />
                 );
               })}
             </Group>
@@ -437,6 +446,8 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
                 <BlurMask blur={6} style="normal" />
               </Circle>
               <Circle cx={RADIUS} cy={RADIUS} r={INNER_RADIUS * 0.62} color="#0F172A" />
+              {/* subtle ring */}
+              <Circle cx={RADIUS} cy={RADIUS} r={INNER_RADIUS * 0.56} color="rgba(255,255,255,0.06)" style="stroke" strokeWidth={1.2} />
               <Circle cx={RADIUS} cy={RADIUS} r={INNER_RADIUS * 0.52} color="#111827" />
               {/* glossy center */}
               <Circle cx={RADIUS} cy={RADIUS} r={INNER_RADIUS * 0.45} color="#0B1220" />
@@ -470,7 +481,7 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
               >
                 {/* Ring with glow */}
                 <LinearGradient
-                  colors={isHighlight ? ["#FFE79A", "#FFB84D"] : ["#1F2937", "#0B1220"]}
+                  colors={isHighlight ? ["#FFE79A", "#FFB84D"] : ["#263248", "#0B1220"]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={{
@@ -487,7 +498,7 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
                   }}
                 >
                   <View style={{ width: size - 6, height: size - 6, borderRadius: (size - 6) / 2, backgroundColor: "#0B1220", alignItems: "center", justifyContent: "center" }}>
-                    <View style={{ width: size - 10, height: size - 10, borderRadius: (size - 10) / 2, backgroundColor: "#111827" }} />
+                    <View style={{ width: size - 10, height: size - 10, borderRadius: (size - 10) / 2, backgroundColor: "#111827", borderWidth: 1, borderColor: "#1F2937" }} />
                   </View>
                 </LinearGradient>
                 <Image
