@@ -21,6 +21,7 @@ import {
   vec,
   BlurMask,
 } from "@shopify/react-native-skia";
+import { Skia } from "@shopify/react-native-skia";
 import * as Haptics from "expo-haptics";
 import {
   PANEL_COUNT,
@@ -197,6 +198,13 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
   const panelAltEnd = "#334877";
   const dividerColor = "rgba(255,255,255,0.12)";
 
+  // Clip path to prevent blurs/halos from bleeding outside the wheel
+  const clipPath = useMemo(() => {
+    const p = Skia.Path.Make();
+    p.addCircle(RADIUS, RADIUS, RADIUS * 0.999);
+    return p;
+  }, [RADIUS]);
+
   // Gesture: two-finger rotation to pre-rotate and start spin on release
   const rotationGesture = Gesture.Rotation()
     .onStart(() => {
@@ -308,10 +316,6 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
             backgroundColor: "#E5E7EB",
             borderWidth: 1,
             borderColor: "#D1D5DB",
-            shadowColor: "#000",
-            shadowOpacity: 0.25,
-            shadowRadius: 4,
-            shadowOffset: { width: 0, height: 2 },
             marginBottom: 2,
           }}
         />
@@ -325,11 +329,6 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
             borderLeftColor: "transparent",
             borderRightColor: "transparent",
             borderTopColor: "#CBD5E1",
-            shadowColor: "#111827",
-            shadowOpacity: 0.35,
-            shadowRadius: 8,
-            shadowOffset: { width: 0, height: 3 },
-            elevation: 8,
           }}
         />
       </View>
@@ -338,12 +337,10 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
       <GestureDetector gesture={composedGesture}>
         <Animated.View style={[{ width: WHEEL_SIZE, height: WHEEL_SIZE }, animatedStyle]}>
           <Canvas style={{ width: WHEEL_SIZE, height: WHEEL_SIZE }}>
+            {/* Hard clip to circle to ensure nothing renders outside the rim */}
+            <Group clip={clipPath}>
             {/* Rim */}
             <Group>
-              {/* Soft outer drop shadow */}
-              <Circle cx={RADIUS} cy={RADIUS} r={RADIUS * 0.995} color="#000000">
-                <BlurMask blur={16} style="normal" />
-              </Circle>
               {/* Outer metallic ring */}
               <Circle cx={RADIUS} cy={RADIUS} r={RADIUS} color={rimOuter} />
               <Circle cx={RADIUS} cy={RADIUS} r={RADIUS * 0.97} color={rimMid} />
@@ -379,6 +376,8 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
                 );
               })}
             </Group>
+
+            {/* Removed broad canvas highlight to prevent geometry artifacts */}
 
             {/* Bulbs */}
             <Group>
@@ -449,25 +448,8 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
                 />
               </Circle>
             </Group>
+            </Group>
           </Canvas>
-
-          {/* Glossy highlight overlay */}
-          <LinearGradient
-            pointerEvents="none"
-            colors={["rgba(255,255,255,0.18)", "rgba(255,255,255,0.06)", "transparent"]}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-            style={{
-              position: "absolute",
-              top: RADIUS * 0.02,
-              left: WHEEL_SIZE * 0.12,
-              width: WHEEL_SIZE * 0.76,
-              height: WHEEL_SIZE * 0.42,
-              borderRadius: WHEEL_SIZE,
-              transform: [{ skewY: "-6deg" }],
-              opacity: 0.9,
-            }}
-          />
 
           {/* Section avatars (kept upright) */}
           {sections.map((s, i) => {
