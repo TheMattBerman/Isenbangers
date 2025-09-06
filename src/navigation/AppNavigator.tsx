@@ -43,7 +43,7 @@ export default function AppNavigator() {
       <Tab.Screen 
         name="Today" 
         component={DailyBangerScreen}
-        options={{ title: "The Daily" }}
+        options={{ title: "The Daily", headerShown: false }}
       />
       <Tab.Screen 
         name="Spin" 

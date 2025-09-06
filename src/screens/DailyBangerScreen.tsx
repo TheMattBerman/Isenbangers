@@ -3,7 +3,7 @@ import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
 import * as Haptics from "expo-haptics";
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from "react-native-reanimated";
 
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -16,7 +16,6 @@ import UnlockMoreModal from "../components/UnlockMoreModal";
 import DailyProgressBar from "../components/DailyProgressBar";
 
 export default function DailyBangerScreen() {
-  const insets = useSafeAreaInsets();
   const todaysBanger = getTodaysBanger();
   const { 
     currentStreak, 
@@ -96,7 +95,7 @@ export default function DailyBangerScreen() {
     <SafeAreaView 
       className="flex-1"
       style={{ flex: 1 }}
-      edges={["left","right","bottom"]}
+      edges={["top","left","right"]}
     >
 <View style={{ flex: 1, backgroundColor: "#FFF7EF" }}>
         <LinearGradient
@@ -110,7 +109,7 @@ export default function DailyBangerScreen() {
           className="flex-1" 
           showsVerticalScrollIndicator={false}
           style={{ flex: 1 }}
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 24 }}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
         >
 
 
@@ -122,7 +121,8 @@ export default function DailyBangerScreen() {
             className="px-6 py-8"
             style={{
               paddingHorizontal: 24,
-              paddingVertical: 32,
+              paddingTop: 16,
+              paddingBottom: 24,
             }}
           >
             <Text 
@@ -158,7 +158,7 @@ export default function DailyBangerScreen() {
                 transform: [{ scale: pillScale.value }] 
               }));
               return (
-                <Animated.View style={[pillStyle, { position: 'absolute', top: 8, right: 16 }]}>
+                <Animated.View style={[pillStyle, { position: 'absolute', top: 16, right: 24 }]}>
                   <Pressable
                     onPress={openStreakDetails}
                     onPressIn={() => { pillScale.value = withTiming(0.98, { duration: 80 }); }}
