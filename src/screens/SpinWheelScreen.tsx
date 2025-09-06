@@ -116,36 +116,6 @@ export default function SpinWheelScreen() {
           {/* Hero Content Area - matches Today page structure */}
           <View style={{ flex: 1, justifyContent: "center", paddingTop: 8, paddingHorizontal: 24 }}>
             <View style={{ marginBottom: 32 }}>
-              {/* Spin Button positioned prominently */}
-              <View style={{ alignItems: 'center', marginBottom: 32 }}>
-                <Pressable
-                  onPress={() => {
-                    if (wheelRef.current?.isBusy()) return;
-                    wheelRef.current?.startSpin();
-                  }}
-                  disabled={isSpinning}
-                  accessibilityRole="button"
-                  accessibilityLabel={selectedBanger ? "Spin Again" : "Spin the Wheel of Greg"}
-                  style={{
-                    backgroundColor: isSpinning ? '#9ca3af' : '#FF7A1A',
-                    paddingVertical: 16,
-                    paddingHorizontal: 32,
-                    borderRadius: 9999,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    shadowColor: '#000000',
-                    shadowOpacity: 0.12,
-                    shadowRadius: 24,
-                    shadowOffset: { width: 0, height: 8 },
-                    elevation: 8,
-                  }}
-                >
-                  <Ionicons name={selectedBanger ? 'refresh' : 'sparkles'} size={20} color="#FFFFFF" />
-                  <Text style={{ color: '#FFFFFF', fontWeight: '800', marginLeft: 10, fontSize: 16 }}>
-                    {selectedBanger ? "Spin Again" : isSpinning ? "Spinning..." : "Spin the Wheel"}
-                  </Text>
-                </Pressable>
-              </View>
 
               {/* Content Card */}
               {!selectedBanger && (
@@ -212,7 +182,7 @@ export default function SpinWheelScreen() {
                 fontSize: 14,
                 fontWeight: '500'
               }}>
-                {selectedBanger ? "Spin again for another banger" : "Give the wheel a spin"}
+                {selectedBanger ? "Spin again for another banger" : "Spin for a banger"}
               </Text>
             </View>
 
