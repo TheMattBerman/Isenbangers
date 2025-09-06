@@ -48,7 +48,7 @@ export default function SpinWheelScreen() {
           className="flex-1" 
           showsVerticalScrollIndicator={false}
           style={{ flex: 1 }}
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 8, paddingTop: 60 }}
+          contentContainerStyle={{ flexGrow: 1, paddingTop: 60 }}
         >
           {/* Header with streak pill */}
           <View 
@@ -166,7 +166,6 @@ export default function SpinWheelScreen() {
 
           {/* Footer with wheel and warm background */}
           <View style={{ 
-            paddingBottom: 8, 
             backgroundColor: "#F9F3F0",
             marginHorizontal: -24, 
             paddingHorizontal: 24,
