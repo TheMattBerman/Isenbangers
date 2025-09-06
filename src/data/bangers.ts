@@ -62,6 +62,7 @@ export const mockBangers: Banger[] = [
     text: "Distribution > Product. The best product with no distribution loses to an okay product with great distribution every time.",
     category: "growth",
     dateAdded: "2024-01-10",
+    audioUrl: "https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3",
   },
   {
     id: "11",
