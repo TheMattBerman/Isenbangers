@@ -48,7 +48,7 @@ export default function AppNavigator() {
       <Tab.Screen 
         name="Spin" 
         component={SpinWheelScreen}
-        options={{ title: "The Wheel" }}
+        options={{ title: "The Wheel", headerShown: false }}
       />
       <Tab.Screen 
         name="Library" 

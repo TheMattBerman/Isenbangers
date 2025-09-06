@@ -49,15 +49,14 @@ export default function BangerCard({ banger, showCategory = true }: BangerCardPr
         <View
           className="rounded-2xl"
           style={{
-            borderRadius: 20,
+            borderRadius: 24,
             backgroundColor: "#FFFFFF",
-            borderWidth: 1,
-            borderColor: "#E6E3DA",
             padding: 24,
-            shadowColor: "#000",
-            shadowOpacity: 0.08,
-            shadowRadius: 12,
-            shadowOffset: { width: 0, height: 6 },
+            shadowColor: "#000000",
+            shadowOffset: { width: 0, height: 8 },
+            shadowOpacity: 0.12,
+            shadowRadius: 24,
+            elevation: 8,
           }}
         >
           {/* Header */}
