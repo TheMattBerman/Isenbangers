@@ -8,6 +8,7 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import {
@@ -16,6 +17,7 @@ import {
   Circle,
   Group,
   SweepGradient,
+  RadialGradient,
   vec,
   BlurMask,
 } from "@shopify/react-native-skia";
@@ -172,10 +174,14 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
   }));
 
   // Colors
-  const rimOuter = "#D6D3CA";
-  const rimInner = "#CFCBBF";
-  const panelStart = "#2F3A52";
-  const panelEnd = "#3C4B6E";
+  const rimOuter = "#8892A2"; // brushed metal outer
+  const rimMid = "#A4ACBA";
+  const rimInner = "#D1D5DB";
+  const panelStart = "#1B2540"; // deep navy
+  const panelEnd = "#2A3B6A";
+  const panelAltStart = "#202A49";
+  const panelAltEnd = "#334877";
+  const dividerColor = "rgba(255,255,255,0.12)";
 
   // Gesture: two-finger rotation to pre-rotate and start spin on release
   const rotationGesture = Gesture.Rotation()
@@ -279,6 +285,22 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
           pointerEvents: "none",
         }}
       >
+        {/* Hinge */}
+        <View
+          style={{
+            width: 18,
+            height: 18,
+            borderRadius: 9,
+            backgroundColor: "#E5E7EB",
+            borderWidth: 1,
+            borderColor: "#D1D5DB",
+            shadowColor: "#000",
+            shadowOpacity: 0.25,
+            shadowRadius: 4,
+            shadowOffset: { width: 0, height: 2 },
+            marginBottom: 2,
+          }}
+        />
         <View
           style={{
             width: 0,
@@ -288,12 +310,12 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
             borderTopWidth: 28,
             borderLeftColor: "transparent",
             borderRightColor: "transparent",
-            borderTopColor: "#9ca3af",
-            shadowColor: "#000",
-            shadowOpacity: 0.25,
-            shadowRadius: 6,
+            borderTopColor: "#CBD5E1",
+            shadowColor: "#111827",
+            shadowOpacity: 0.35,
+            shadowRadius: 8,
             shadowOffset: { width: 0, height: 3 },
-            elevation: 6,
+            elevation: 8,
           }}
         />
       </View>
@@ -304,24 +326,45 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
           <Canvas style={{ width: WHEEL_SIZE, height: WHEEL_SIZE }}>
             {/* Rim */}
             <Group>
+              {/* Soft outer drop shadow */}
+              <Circle cx={RADIUS} cy={RADIUS} r={RADIUS * 0.995} color="#000000">
+                <BlurMask blur={16} style="normal" />
+              </Circle>
+              {/* Outer metallic ring */}
               <Circle cx={RADIUS} cy={RADIUS} r={RADIUS} color={rimOuter} />
-              <Circle cx={RADIUS} cy={RADIUS} r={RADIUS * 0.92} color={rimInner} />
+              <Circle cx={RADIUS} cy={RADIUS} r={RADIUS * 0.97} color={rimMid} />
+              <Circle cx={RADIUS} cy={RADIUS} r={RADIUS * 0.94} color={rimInner} />
+              {/* Inner bevel shadow */}
+              <Circle cx={RADIUS} cy={RADIUS} r={RADIUS * 0.915} color="#00000020" />
             </Group>
 
             {/* Panels */}
             {segments.map(({ path, index }) => (
               <Group key={index}>
-                <Path path={path} color={panelEnd}>
+                <Path path={path} color={index % 2 === 0 ? panelEnd : panelAltEnd}>
                   <SweepGradient
                     c={vec(RADIUS, RADIUS)}
-                    colors={[panelStart, panelEnd]}
+                    colors={index % 2 === 0 ? [panelStart, panelEnd] : [panelAltStart, panelAltEnd]}
                     positions={[0, 1]}
                   />
                 </Path>
-                {/* highlight arc */}
-                <Path path={path} color="rgba(255,255,255,0.06)" />
+                {/* Subtle sheen per panel */}
+                <Path path={path} color="rgba(255,255,255,0.05)" />
               </Group>
             ))}
+
+            {/* Panel dividers */}
+            <Group>
+              {new Array(PANEL_COUNT).fill(0).map((_, i) => {
+                const start = i * panelAngle - 90;
+                const p1 = polarToCartesian(RADIUS, RADIUS, RADIUS * 0.94, start);
+                const p2 = polarToCartesian(RADIUS, RADIUS, Math.max(INNER_RADIUS - 2, 0), start);
+                const d = `M ${p1.x} ${p1.y} L ${p2.x} ${p2.y}`;
+                return (
+                  <Path key={`divider-${i}`} path={d} color={dividerColor} style="stroke" strokeWidth={1} />
+                );
+              })}
+            </Group>
 
             {/* Bulbs */}
             <Group>
@@ -337,10 +380,41 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
 
             {/* Center hub */}
             <Group>
-              <Circle cx={RADIUS} cy={RADIUS} r={INNER_RADIUS * 0.6} color="#0b0f19" />
-              <Circle cx={RADIUS} cy={RADIUS} r={INNER_RADIUS * 0.45} color="#111827" />
+              {/* glow */}
+              <Circle cx={RADIUS} cy={RADIUS} r={INNER_RADIUS * 0.68} color="#0b0f19">
+                <BlurMask blur={6} style="normal" />
+              </Circle>
+              <Circle cx={RADIUS} cy={RADIUS} r={INNER_RADIUS * 0.62} color="#0F172A" />
+              <Circle cx={RADIUS} cy={RADIUS} r={INNER_RADIUS * 0.52} color="#111827" />
+              {/* glossy center */}
+              <Circle cx={RADIUS} cy={RADIUS} r={INNER_RADIUS * 0.45} color="#0B1220" />
+              <Circle cx={RADIUS} cy={RADIUS} r={INNER_RADIUS * 0.45} color="#0B1220">
+                <RadialGradient
+                  c={vec(RADIUS, RADIUS - INNER_RADIUS * 0.12)}
+                  r={INNER_RADIUS * 0.45}
+                  colors={["#1F2937", "#0B1220"]}
+                />
+              </Circle>
             </Group>
           </Canvas>
+
+          {/* Glossy highlight overlay */}
+          <LinearGradient
+            pointerEvents="none"
+            colors={["rgba(255,255,255,0.18)", "rgba(255,255,255,0.06)", "transparent"]}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={{
+              position: "absolute",
+              top: RADIUS * 0.02,
+              left: WHEEL_SIZE * 0.12,
+              width: WHEEL_SIZE * 0.76,
+              height: WHEEL_SIZE * 0.42,
+              borderRadius: WHEEL_SIZE,
+              transform: [{ skewY: "-6deg" }],
+              opacity: 0.9,
+            }}
+          />
 
           {/* Section avatars (kept upright) */}
           {sections.map((s, i) => {
@@ -359,10 +433,31 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
                 pointerEvents="none"
                 style={[{ position: "absolute", left, top, width: size, height: size, alignItems: "center", justifyContent: "center" }, keepUprightStyle]}
               >
-                <View style={{ position: "absolute", width: size, height: size, borderRadius: size / 2, backgroundColor: "#FFFFFF" }} />
+                {/* Ring with glow */}
+                <LinearGradient
+                  colors={isHighlight ? ["#FFE79A", "#FFB84D"] : ["#1F2937", "#0B1220"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{
+                    position: "absolute",
+                    width: size,
+                    height: size,
+                    borderRadius: size / 2,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    shadowColor: isHighlight ? "#FFD56A" : "#000",
+                    shadowOpacity: isHighlight ? 0.7 : 0.25,
+                    shadowRadius: isHighlight ? 14 : 6,
+                    shadowOffset: { width: 0, height: 3 },
+                  }}
+                >
+                  <View style={{ width: size - 6, height: size - 6, borderRadius: (size - 6) / 2, backgroundColor: "#0B1220", alignItems: "center", justifyContent: "center" }}>
+                    <View style={{ width: size - 10, height: size - 10, borderRadius: (size - 10) / 2, backgroundColor: "#111827" }} />
+                  </View>
+                </LinearGradient>
                 <Image
                   source={{ uri: s.imageUri }}
-                  style={{ width: size - 8, height: size - 8, borderRadius: (size - 8) / 2, transform: [{ scale: isHighlight ? 1.06 : 1 }] }}
+                  style={{ width: size - 12, height: size - 12, borderRadius: (size - 12) / 2, transform: [{ scale: isHighlight ? 1.06 : 1 }] }}
                   contentFit="cover"
                   transition={150}
                   cachePolicy="memory-disk"
