@@ -44,7 +44,7 @@ export default function App() {
       <SafeAreaProvider>
         <NavigationContainer>
           <AppNavigator />
-          <StatusBar style="dark" />
+          <StatusBar style="dark" translucent backgroundColor="transparent" />
         </NavigationContainer>
       </SafeAreaProvider>
     </GestureHandlerRootView>

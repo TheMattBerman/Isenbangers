@@ -95,7 +95,7 @@ export default function DailyBangerScreen() {
     <SafeAreaView 
       className="flex-1"
       style={{ flex: 1 }}
-      edges={["top","left","right"]}
+      edges={["left","right"]}
     >
 <View style={{ flex: 1, backgroundColor: "#FFF7EF" }}>
         <LinearGradient
@@ -109,7 +109,7 @@ export default function DailyBangerScreen() {
           className="flex-1" 
           showsVerticalScrollIndicator={false}
           style={{ flex: 1 }}
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 24, paddingTop: 60 }}
         >
 
 
