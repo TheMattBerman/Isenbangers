@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 
-import BangerCard from "../components/BangerCard";
+import DailyBangerCard from "../components/DailyBangerCard";
 import { getTodaysBanger } from "../data/bangers";
 import { useAppStore } from "../state/appStore";
 import StreakModal, { buildWeekRow } from "../components/StreakModal";
@@ -189,10 +189,18 @@ export default function DailyBangerScreen() {
             })()}
           </View>
 
-          {/* Centered Banger Card */}
-          <View style={{ flex: 1, justifyContent: "center", paddingTop: 8 }}>
+          {/* Centered Daily Banger Card */}
+          <View style={{ flex: 1, justifyContent: "center", paddingTop: 8, paddingHorizontal: 24 }}>
             <View style={{ marginBottom: 32 }}>
-              <BangerCard banger={todaysBanger} showCategory={true} />
+              <DailyBangerCard
+                quoteId={todaysBanger.id}
+                category={todaysBanger.category}
+                date={todaysBanger.dateAdded}
+                quoteText={todaysBanger.text}
+                authorName="Greg Isenberg"
+                audioUrl={todaysBanger.audioUrl}
+                isLocked={false}
+              />
             </View>
           </View>
 
