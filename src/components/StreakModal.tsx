@@ -35,29 +35,32 @@ export default function StreakModal({ visible, mode, streakCount, week, onContin
 
   useEffect(() => {
     if (visible) {
+      // Reset all animation values to their starting positions
+      backOpacity.value = 0;
+      cardY.value = 24;
+      cardScale.value = 0.98;
+      flameScale.value = lost ? 1 : 0.96;
+      
+      // Then animate in
       backOpacity.value = withTiming(1, { duration: 220, easing: Easing.ease });
       cardY.value = withTiming(0, { duration: 220, easing: Easing.out(Easing.cubic) });
       cardScale.value = withTiming(1, { duration: 220, easing: Easing.out(Easing.cubic) });
       if (!lost) {
-        flameScale.value = 0.96;
         flameScale.value = withDelay(80, withTiming(1, { duration: 160 }));
       }
     }
-  }, [visible]);
+  }, [visible, lost]);
 
   const backStyle = useAnimatedStyle(() => ({ opacity: backOpacity.value }));
   const cardStyle = useAnimatedStyle(() => ({ transform: [{ translateY: cardY.value }, { scale: cardScale.value }] }));
   const flameStyle = useAnimatedStyle(() => ({ transform: [{ scale: flameScale.value }] }));
 
-  const exiting = useRef(false);
   const handleClose = () => {
-    if (exiting.current) return;
-    exiting.current = true;
+    // Simple close with exit animation
     backOpacity.value = withTiming(0, { duration: 180 });
     cardY.value = withTiming(24, { duration: 180 });
     cardScale.value = withTiming(0.98, { duration: 180 }, () => {
       runOnJS(onContinue)();
-      exiting.current = false;
     });
   };
 

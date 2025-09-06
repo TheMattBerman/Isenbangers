@@ -43,12 +43,12 @@ export default function AppNavigator() {
       <Tab.Screen 
         name="Today" 
         component={DailyBangerScreen}
-        options={{ title: "The Daily" }}
+        options={{ title: "The Daily", headerShown: false }}
       />
       <Tab.Screen 
         name="Spin" 
         component={SpinWheelScreen}
-        options={{ title: "The Wheel" }}
+        options={{ title: "The Wheel", headerShown: false }}
       />
       <Tab.Screen 
         name="Library" 

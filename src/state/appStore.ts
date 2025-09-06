@@ -18,6 +18,7 @@ interface AppState {
   ensureTodayStart: () => void;
   clearTodayStart: () => void;
   
+  
   // UI / Streak modal guard
   lastStreakShownDate: string | null;
   setLastStreakShownToday: () => void;

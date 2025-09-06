@@ -6,6 +6,7 @@ export const mockBangers: Banger[] = [
     text: "The best time to plant a tree was 20 years ago. The second best time is now. The third best time is after you've validated your idea with 100 customers.",
     category: "startup",
     dateAdded: "2024-01-01",
+    audioUrl: "https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3",
   },
   {
     id: "2", 
@@ -18,6 +19,7 @@ export const mockBangers: Banger[] = [
     text: "Fundraising is like dating. If you're desperate, everyone can smell it. If you're confident and have options, everyone wants you.",
     category: "fundraising",
     dateAdded: "2024-01-03",
+    audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
   },
   {
     id: "4",
@@ -60,6 +62,7 @@ export const mockBangers: Banger[] = [
     text: "Distribution > Product. The best product with no distribution loses to an okay product with great distribution every time.",
     category: "growth",
     dateAdded: "2024-01-10",
+    audioUrl: "https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3",
   },
   {
     id: "11",
