@@ -8,7 +8,8 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.vibecode.isenbanger"
     },
     "android": {
       "edgeToEdgeEnabled": true
