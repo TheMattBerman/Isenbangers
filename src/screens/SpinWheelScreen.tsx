@@ -5,7 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from "react-native-reanimated";
 import SpinWheel, { SpinWheelHandle } from "../components/SpinWheel";
 import { getDefaultSpinSections } from "../data/spinSections";
-import BangerCard from "../components/BangerCard";
+import DailyBangerCard from "../components/DailyBangerCard";
 import { getRandomBanger, getRareBanger } from "../data/bangers";
 import { Banger } from "../types/banger";
 import { Ionicons } from "@expo/vector-icons";
@@ -181,7 +181,15 @@ export default function SpinWheelScreen() {
                 </View>
               )}
               {selectedBanger && (
-                <BangerCard banger={selectedBanger} showCategory={true} />
+                <DailyBangerCard
+                  quoteId={selectedBanger.id}
+                  category={selectedBanger.category}
+                  date={selectedBanger.dateAdded}
+                  quoteText={selectedBanger.text}
+                  authorName="Greg Isenberg"
+                  audioUrl={selectedBanger.audioUrl}
+                  isLocked={false}
+                />
               )}
             </View>
           </View>
