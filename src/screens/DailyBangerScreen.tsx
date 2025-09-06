@@ -14,6 +14,7 @@ import StreakModal, { buildWeekRow } from "../components/StreakModal";
 import Countdown24h from "../components/Countdown24h";
 import UnlockMoreModal from "../components/UnlockMoreModal";
 import DailyProgressBar from "../components/DailyProgressBar";
+import NextUnlockCard from "../components/NextUnlockCard";
 
 export default function DailyBangerScreen() {
   const todaysBanger = getTodaysBanger();
@@ -204,31 +205,36 @@ export default function DailyBangerScreen() {
             </View>
           </View>
 
-          {/* Footer with countdown and CTA */}
-          <View 
-            className="px-6 pb-8"
-            style={{ paddingHorizontal: 24, paddingBottom: 32 }}
-          >
+          {/* Footer with NextUnlockCard */}
+          <View style={{ 
+            paddingBottom: 32, 
+            backgroundColor: "#F9F3F0", // bgWarm per spec
+            marginHorizontal: -24, 
+            paddingHorizontal: 8,
+            paddingTop: 16,
+            borderRadius: 24,
+            marginTop: 16
+          }}>
             {firstViewAtMs ? (
-              <>
-                <Countdown24h endAtMs={firstViewAtMs + 24 * 60 * 60 * 1000} />
-                <View style={{ height: 6 }} />
-                <DailyProgressBar startAtMs={firstViewAtMs} endAtMs={firstViewAtMs + 24 * 60 * 60 * 1000} />
-              </>
+              <NextUnlockCard 
+                endAtMs={firstViewAtMs + 24 * 60 * 60 * 1000}
+                onUnlocked={() => {
+                  // Handle unlock - could trigger navigation, refresh, etc.
+                  console.log("Daily banger unlocked!");
+                }}
+                onPaywallOpen={() => {
+                  // Open paywall modal or navigate to paywall screen
+                  console.log("Opening paywall for early access");
+                  setUnlockVisible(true);
+                }}
+              />
             ) : (
-              <Text className="text-gray-600 text-center text-sm" style={{ color: "#6B7280", textAlign: "center", fontSize: 12 }}>
-                Next daily countdown starting…
-              </Text>
+              <View style={{ paddingHorizontal: 24 }}>
+                <Text className="text-gray-600 text-center text-sm" style={{ color: "#6B7280", textAlign: "center", fontSize: 12 }}>
+                  Next daily countdown starting…
+                </Text>
+              </View>
             )}
-            <View style={{ height: 12 }} />
-            <Pressable
-              onPress={() => setUnlockVisible(true)}
-              className="h-12 rounded-full overflow-hidden items-center justify-center"
-              style={{ borderWidth: 1, borderColor: "#FFD3B0" }}
-            >
-              <LinearGradient colors={["#FF8C33", "#FF7A1A"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: "absolute", inset: 0, borderRadius: 999 }} />
-              <Text className="font-semibold" style={{ color: "#FFFFFF" }}>Unlock more</Text>
-            </Pressable>
           </View>
           
           {/* Streak Modal */}
