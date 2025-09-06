@@ -106,13 +106,27 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
   const bulbs = useMemo(() => {
     const cx = RADIUS;
     const cy = RADIUS;
-    const outer = RADIUS * 0.98;
+    const outer = RADIUS * 0.965; // keep inside canvas, leave room for halo
     return new Array(BULB_COUNT).fill(0).map((_, i) => {
       const angle = i * (360 / BULB_COUNT) - 90;
       const a = (angle * Math.PI) / 180;
-      return { x: cx + outer * Math.cos(a), y: cy + outer * Math.sin(a) };
+      const ux = Math.cos(a);
+      const uy = Math.sin(a);
+      return { x: cx + outer * ux, y: cy + outer * uy, ux, uy, angle };
     });
   }, [RADIUS]);
+
+  // Animated marquee glow for bulbs (lightweight interval)
+  const [bulbAnimT, setBulbAnimT] = useState(0);
+  const bulbPhase = useMemo(() => new Array(BULB_COUNT).fill(0).map(() => Math.random() * Math.PI * 2), []);
+  useEffect(() => {
+    let t = 0;
+    const id = setInterval(() => {
+      t += 0.06; // ~16 steps per second
+      setBulbAnimT(t);
+    }, 60);
+    return () => clearInterval(id);
+  }, []);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -368,14 +382,53 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(({ onSpinComplete,
 
             {/* Bulbs */}
             <Group>
-              {bulbs.map((b, i) => (
-                <Group key={i}>
-                  <Circle cx={b.x} cy={b.y} r={5} color="#FFE79A">
-                    <BlurMask blur={8} style="normal" />
-                  </Circle>
-                  <Circle cx={b.x} cy={b.y} r={3} color="#FFF2C2" />
-                </Group>
-              ))}
+              {bulbs.map((b, i) => {
+                // marquee wave + occasional twinkle
+                let wave = Math.max(0, Math.sin(bulbAnimT * 2.0 + bulbPhase[i] + i * 0.5));
+                const twinkle = ((Math.floor(bulbAnimT * 3) + i) % 6 === 0) ? 0.25 : 0;
+                const intensity = Math.min(1.2, 0.7 + 0.45 * wave + twinkle); // 0.7..~1.2
+                const outerAlpha = 0.65 * intensity;
+                const midAlpha = 0.9 * intensity;
+                const coreAlpha = 1.0 * Math.min(1, intensity);
+                const glowRadius = 10 + 3 * intensity;
+                const midRadius = 6 + 1.1 * intensity;
+                const coreRadius = 3.6 + 0.6 * intensity;
+                // small fixture stem
+                const stemLen = 8;
+                const stemBackX = b.x - b.ux * (coreRadius + 3);
+                const stemBackY = b.y - b.uy * (coreRadius + 3);
+                const stemFrontX = stemBackX - b.ux * stemLen;
+                const stemFrontY = stemBackY - b.uy * stemLen;
+                const stemPath = `M ${stemBackX} ${stemBackY} L ${stemFrontX} ${stemFrontY}`;
+                return (
+                  <Group key={i}>
+                    {/* Socket bezel for contrast */}
+                    <Circle cx={b.x} cy={b.y} r={glowRadius + 2} color="#0A0F1A" />
+                    {/* Fixture stem */}
+                    <Path path={stemPath} color="#94A3B8" style="stroke" strokeWidth={2} />
+                    {/* Outer halo */}
+                    <Circle cx={b.x} cy={b.y} r={glowRadius} color={`rgba(255,187,92,${(outerAlpha*0.75).toFixed(3)})`}>
+                      <BlurMask blur={14} style="normal" />
+                    </Circle>
+                    {/* Mid glow with warm gradient */}
+                    <Circle cx={b.x} cy={b.y} r={midRadius} color={`rgba(255,231,154,${midAlpha.toFixed(3)})`}>
+                      <RadialGradient
+                        c={vec(b.x, b.y)}
+                        r={midRadius}
+                        colors={[`rgba(255,250,230,${midAlpha.toFixed(3)})`, `rgba(255,180,70,${(0.6*midAlpha).toFixed(3)})`]}
+                      />
+                    </Circle>
+                    {/* Core glass */}
+                    <Circle cx={b.x} cy={b.y} r={coreRadius} color={`rgba(255,246,210,${coreAlpha.toFixed(3)})`} />
+                    {/* Glass rim highlight */}
+                    <Circle cx={b.x} cy={b.y} r={coreRadius + 1.2} color="rgba(255,255,255,0.35)" style="stroke" strokeWidth={0.8} />
+                    {/* Specular dot */}
+                    <Circle cx={b.x - coreRadius * 0.35} cy={b.y - coreRadius * 0.45} r={coreRadius * 0.38} color={`rgba(255,255,255,${(0.9*wave + 0.2).toFixed(3)})`}>
+                      <BlurMask blur={2.2} style="normal" />
+                    </Circle>
+                  </Group>
+                );
+              })}
             </Group>
 
             {/* Center hub */}
