@@ -19,7 +19,8 @@ import {
   calculateTimeFromPosition,
   calculatePositionFromTime,
   formatTime,
-  calculateProgress
+  calculateProgress,
+  getWaveformData
 } from '../utils/waveformUtils';
 
 interface AudioPlayerProps {
@@ -51,6 +52,7 @@ export default function AudioPlayer({
   const [containerWidth, setContainerWidth] = useState(0);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [waveformData, setWaveformData] = useState<WaveformData | null>(null);
+  const [waveformLoading, setWaveformLoading] = useState(true);
   
   // Animation values
   const playButtonScale = useSharedValue(1);
@@ -59,12 +61,29 @@ export default function AudioPlayer({
   
   // Refs
   const updateIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const seekTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSeekTime = useRef<number>(0);
   
   // Initialize waveform data
   useEffect(() => {
-    const mockData = generateMockWaveform(120, 80);
-    setWaveformData(mockData);
-  }, []);
+    const loadWaveformData = async () => {
+      try {
+        setWaveformLoading(true);
+        // Try to generate real waveform data from audio
+        const waveform = await getWaveformData(audioUrl, 80);
+        setWaveformData(waveform);
+      } catch (error) {
+        console.warn('Failed to load waveform data, using mock:', error);
+        // Fallback to mock data
+        const mockData = generateMockWaveform(120, 80);
+        setWaveformData(mockData);
+      } finally {
+        setWaveformLoading(false);
+      }
+    };
+    
+    loadWaveformData();
+  }, [audioUrl]);
   
   // Load audio
   useEffect(() => {
@@ -76,6 +95,9 @@ export default function AudioPlayer({
       if (updateIntervalRef.current) {
         clearInterval(updateIntervalRef.current);
       }
+      if (seekTimeoutRef.current) {
+        clearTimeout(seekTimeoutRef.current);
+      }
     };
   }, [audioUrl]);
   
@@ -85,7 +107,7 @@ export default function AudioPlayer({
       const targetPosition = calculatePositionFromTime(position, duration, containerWidth);
       progressPosition.value = reduceMotion 
         ? targetPosition 
-        : withTiming(targetPosition, { duration: 100 });
+        : withTiming(targetPosition, { duration: 150 }); // Slightly longer for smoother animation
     }
   }, [position, duration, containerWidth, reduceMotion]);
   
@@ -132,16 +154,23 @@ export default function AudioPlayer({
     }
   };
   
-  const onPlaybackStatusUpdate = (status: any) => {
+  const onPlaybackStatusUpdate = useCallback((status: any) => {
     if (status.isLoaded) {
-      setPosition(status.positionMillis / 1000);
+      const newPosition = status.positionMillis / 1000;
+      
+      // Only update if there's a significant change to avoid excessive re-renders
+      if (Math.abs(newPosition - position) > 0.1) {
+        setPosition(newPosition);
+      }
+      
       setIsPlaying(status.isPlaying);
       
       if (status.didJustFinish && onComplete) {
         onComplete();
+        setPosition(0); // Reset to beginning when finished
       }
     }
-  };
+  }, [position, onComplete]);
   
   const togglePlayPause = useCallback(async () => {
     if (!sound) return;
@@ -166,8 +195,27 @@ export default function AudioPlayer({
     
     try {
       const positionMs = Math.max(0, Math.min(duration * 1000, newPosition * 1000));
-      await sound.setPositionAsync(positionMs);
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      
+      // Clear any existing seek timeout to prevent excessive seeking
+      if (seekTimeoutRef.current) {
+        clearTimeout(seekTimeoutRef.current);
+      }
+      
+      const now = Date.now();
+      lastSeekTime.current = now;
+      
+      // Debounce seeking to ensure sub-200ms response time
+      seekTimeoutRef.current = setTimeout(async () => {
+        // Only seek if this is the latest seek request
+        if (lastSeekTime.current === now) {
+          await sound.setPositionAsync(positionMs);
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }
+      }, 50); // 50ms debounce for smooth scrubbing
+      
+      // Update position immediately for visual feedback
+      setPosition(newPosition);
+      
     } catch (error) {
       console.error('Error seeking:', error);
     }
@@ -186,13 +234,19 @@ export default function AudioPlayer({
     }
   }, [sound]);
   
-  // Gesture handling for waveform scrubbing
+  // Gesture handling for waveform scrubbing with improved performance
   const panGesture = Gesture.Pan()
     .onUpdate((event) => {
       if (!duration || containerWidth === 0) return;
       
       const newTime = calculateTimeFromPosition(event.x, containerWidth, duration);
+      // Update visual position immediately for responsive feedback
+      progressPosition.value = calculatePositionFromTime(newTime, duration, containerWidth);
       runOnJS(seekToPosition)(newTime);
+    })
+    .onEnd(() => {
+      // Ensure final position is accurate when gesture ends
+      runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium);
     });
   
   const tapGesture = Gesture.Tap()
@@ -200,7 +254,10 @@ export default function AudioPlayer({
       if (!duration || containerWidth === 0) return;
       
       const newTime = calculateTimeFromPosition(event.x, containerWidth, duration);
+      // Update visual position immediately for responsive tap feedback
+      progressPosition.value = calculatePositionFromTime(newTime, duration, containerWidth);
       runOnJS(seekToPosition)(newTime);
+      runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light);
     });
   
   const longPressGesture = Gesture.LongPress()
@@ -224,14 +281,12 @@ export default function AudioPlayer({
     transform: [{ scale: playButtonScale.value }],
   }));
   
-  const progressStyle = useAnimatedStyle(() => ({
-    width: progressPosition.value,
-  }));
+  // Remove unused progressStyle since we now use individual bar coloring
   
-  if (!waveformData) {
+  if (!waveformData || waveformLoading) {
     return (
       <View style={{ padding: 16, alignItems: 'center' }}>
-        <Text style={{ color: '#6B7280' }}>Loading...</Text>
+        <Text style={{ color: '#6B7280' }}>{waveformLoading ? 'Processing audio...' : 'Loading...'}</Text>
       </View>
     );
   }
@@ -337,49 +392,45 @@ export default function AudioPlayer({
             height: '100%',
             justifyContent: 'space-between'
           }}>
-            {waveformData.peaks.map((peak, index) => (
-              <View
-                key={index}
-                style={{
-                  width: Math.max(2, containerWidth / waveformData.peaks.length - 1),
-                  height: Math.max(4, peak * 44),
-                  backgroundColor: '#D1D5DB',
-                  borderRadius: 1,
-                }}
-              />
-            ))}
+            {waveformData.peaks.map((peak, index) => {
+              const progress = calculateProgress(position, duration);
+              const barProgress = index / waveformData.peaks.length;
+              const isPlayed = barProgress <= progress;
+              
+              return (
+                <View
+                  key={index}
+                  style={{
+                    width: Math.max(2, containerWidth / waveformData.peaks.length - 1),
+                    height: Math.max(4, peak * 44),
+                    backgroundColor: isPlayed ? '#FF7A1A' : '#D1D5DB',
+                    borderRadius: 1,
+                    opacity: isPlayed ? 0.9 : 0.6,
+                    // Smooth color transition handled by individual bar rendering
+                  }}
+                />
+              );
+            })}
           </View>
           
-          {/* Progress Overlay */}
-          <Animated.View
-            style={[
-              {
-                position: 'absolute',
-                left: 8,
-                top: 8,
-                bottom: 8,
-                backgroundColor: '#FF7A1A',
-                borderRadius: 12,
-                opacity: 0.8,
-              },
-              progressStyle,
-            ]}
-          />
+          {/* Progress Overlay - removed since individual bars now show progress */}
           
           {/* Progress Indicator */}
           <Animated.View
             style={[
               {
                 position: 'absolute',
-                top: 4,
-                bottom: 4,
-                width: 2,
-                backgroundColor: '#FF7A1A',
-                borderRadius: 1,
-                shadowColor: '#FF7A1A',
+                top: 2,
+                bottom: 2,
+                width: 3,
+                backgroundColor: '#FF4500',
+                borderRadius: 2,
+                shadowColor: '#FF4500',
                 shadowOffset: { width: 0, height: 0 },
-                shadowOpacity: 0.8,
-                shadowRadius: 4,
+                shadowOpacity: 1,
+                shadowRadius: 6,
+                elevation: 5,
+                zIndex: 10,
               },
               {
                 transform: [{ translateX: progressPosition }],

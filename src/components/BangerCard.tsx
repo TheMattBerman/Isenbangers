@@ -9,7 +9,7 @@ import { useAppStore } from "../state/appStore";
 import { cn } from "../utils/cn";
 import ShareModal from "./ShareModal";
 import AudioMiniPlayer from "./AudioMiniPlayer";
-import { shareAsText } from "../utils/sharing";
+import ActionRow from "./ActionRow";
 
 interface BangerCardProps {
   banger: Banger;
@@ -18,38 +18,15 @@ interface BangerCardProps {
 
 export default function BangerCard({ banger, showCategory = true }: BangerCardProps) {
   const [showShareModal, setShowShareModal] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
-  const toastOpacity = useSharedValue(0);
 
   const { favoriteBangers, addToFavorites, removeFromFavorites } = useAppStore();
   const isFavorite = favoriteBangers.includes(banger.id);
-
-  const showToast = (msg: string) => {
-    setToast(msg);
-    toastOpacity.value = withTiming(1, { duration: 150 });
-    setTimeout(() => {
-      toastOpacity.value = withTiming(0, { duration: 250 });
-      setTimeout(() => setToast(null), 260);
-    }, 1400);
-  };
-
-
 
   const handleFavorite = () => {
     if (isFavorite) {
       removeFromFavorites(banger.id);
     } else {
       addToFavorites(banger.id);
-    }
-  };
-
-  const handleCopy = async () => {
-    try {
-      const ok = await shareAsText(banger);
-      showToast(ok ? "Copied to clipboard" : "Copy failed");
-      Haptics.selectionAsync();
-    } catch {
-      showToast("Copy failed");
     }
   };
 
@@ -64,13 +41,6 @@ export default function BangerCard({ banger, showCategory = true }: BangerCardPr
     }
   };
 
-  // Toast animated style
-  const toastStyle = useAnimatedStyle(() => ({ opacity: toastOpacity.value }));
-
-  // Press micro-interactions
-  const copyScale = useSharedValue(1);
-  const favScale = useSharedValue(1);
-  const shareScale = useSharedValue(1);
 
   return (
     <View className="px-6">
@@ -121,74 +91,16 @@ export default function BangerCard({ banger, showCategory = true }: BangerCardPr
 
       </View>
 
-      {/* Action Bar */}
-      <View className="flex-row items-center" style={{ marginTop: 32 }}>
-        {/* Copy */}
-        <Animated.View style={{ flex: 1, alignItems: "center" }}>
-          <Pressable
-            onPress={handleCopy}
-            onPressIn={() => { copyScale.value = withTiming(0.96, { duration: 90 }); }}
-            onPressOut={() => { copyScale.value = withTiming(1, { duration: 120 }); }}
-            accessibilityLabel="Copy quote"
-            style={{ alignItems: "center", padding: 8 }}
-            hitSlop={12}
-          >
-            <Animated.View style={[{ transform: [{ scale: copyScale.value }] } as any]}>
-              <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E6E3DA" }}>
-                <Ionicons name="copy-outline" size={20} color="#374151" />
-              </View>
-            </Animated.View>
-            <Text className="text-xs mt-2" style={{ color: "#6B7280" }}>Copy</Text>
-          </Pressable>
-        </Animated.View>
-
-        {/* Favorite */}
-        <Animated.View style={{ flex: 1, alignItems: "center" }}>
-          <Pressable
-            onPress={handleFavorite}
-            onPressIn={() => { favScale.value = withTiming(0.96, { duration: 90 }); }}
-            onPressOut={() => { favScale.value = withTiming(1, { duration: 120 }); }}
-            accessibilityLabel={isFavorite ? "Remove from favorites" : "Add to favorites"}
-            style={{ alignItems: "center", padding: 8 }}
-            hitSlop={12}
-          >
-            <Animated.View style={[{ transform: [{ scale: favScale.value }] } as any]}>
-              <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E6E3DA" }}>
-                <Ionicons name={isFavorite ? "heart" : "heart-outline"} size={20} color={isFavorite ? "#EF4444" : "#374151"} />
-              </View>
-            </Animated.View>
-            <Text className="text-xs mt-2" style={{ color: "#6B7280" }}>Favorite</Text>
-          </Pressable>
-        </Animated.View>
-
-        {/* Share */}
-        <Animated.View style={{ flex: 1, alignItems: "center" }}>
-          <Pressable
-            onPress={() => setShowShareModal(true)}
-            onPressIn={() => { shareScale.value = withTiming(0.96, { duration: 90 }); }}
-            onPressOut={() => { shareScale.value = withTiming(1, { duration: 120 }); }}
-            accessibilityLabel="Share quote"
-            style={{ alignItems: "center", padding: 8 }}
-            hitSlop={12}
-          >
-            <Animated.View style={[{ transform: [{ scale: shareScale.value }] } as any]}>
-              <View className="w-12 h-12 rounded-full items-center justify-center" style={{ backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E6E3DA" }}>
-                <Ionicons name="share-outline" size={20} color="#374151" />
-              </View>
-            </Animated.View>
-            <Text className="text-xs mt-2" style={{ color: "#6B7280" }}>Share</Text>
-          </Pressable>
-        </Animated.View>
+      {/* Action Row */}
+      <View style={{ marginTop: 32 }}>
+        <ActionRow
+          onShare={() => setShowShareModal(true)}
+          onSave={handleFavorite}
+          onCopy={() => {}} // Copy is handled internally by ActionRow
+          isSaved={isFavorite}
+          banger={banger}
+        />
       </View>
-
-      {/* Toast */}
-      {toast ? (
-        <Animated.View
-          style={[{ marginTop: 12, alignSelf: "center", paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E6E3DA", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } }, toastStyle]}
-        >
-          <Text className="text-xs" style={{ color: "#111111" }}>{toast}</Text>
-        </Animated.View>
-      ) : null}
 
       <ShareModal visible={showShareModal} onClose={() => setShowShareModal(false)} banger={banger} />
     </View>

@@ -30,6 +30,11 @@ jest.mock('../utils/waveformUtils', () => ({
     duration: 120,
     sampleRate: 1,
   })),
+  getWaveformData: jest.fn(() => Promise.resolve({
+    peaks: [0.5, 0.8, 0.3, 0.9, 0.6, 0.4, 0.7, 0.2],
+    duration: 120,
+    sampleRate: 1,
+  })),
   calculateTimeFromPosition: jest.fn((x, width, duration) => (x / width) * duration),
   calculatePositionFromTime: jest.fn((time, duration, width) => (time / duration) * width),
   formatTime: jest.fn((seconds) => {
@@ -139,9 +144,8 @@ describe('AudioPlayer', () => {
     it('shows loading state initially', () => {
       render(<AudioPlayer {...defaultProps} />);
       
-      // The component should show loading text or loading button initially
-      // This might be an hourglass icon or similar loading indicator
-      expect(screen.queryByText('Loading...')).toBeTruthy();
+      // The component should show processing text while loading waveform
+      expect(screen.queryByText('Processing audio...')).toBeTruthy();
     });
   });
 

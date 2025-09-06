@@ -3,6 +3,10 @@ import { View, Text, Pressable, Image } from "react-native";
 import { format } from "date-fns";
 import { cn } from "../utils/cn";
 import AudioPlayer from "./AudioPlayer";
+import ActionRow from "./ActionRow";
+import ShareModal from "./ShareModal";
+import { useAppStore } from "../state/appStore";
+import { Banger } from "../types/banger";
 
 interface DailyBangerCardProps {
   quoteId: string;
@@ -28,6 +32,19 @@ export default function DailyBangerCard({
   onCategoryPress,
 }: DailyBangerCardProps) {
   const [showFullText, setShowFullText] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+
+  const { favoriteBangers, addToFavorites, removeFromFavorites } = useAppStore();
+  const isFavorite = favoriteBangers.includes(quoteId);
+
+  // Convert props to Banger object for ActionRow
+  const banger: Banger = {
+    id: quoteId,
+    text: quoteText,
+    category: category as Banger['category'],
+    dateAdded: date,
+    audioUrl,
+  };
 
   const getCategoryColor = (category: string) => {
     switch (category) {
@@ -56,6 +73,14 @@ export default function DailyBangerCard({
 
   const handleExpandPress = () => {
     setShowFullText(!showFullText);
+  };
+
+  const handleFavorite = () => {
+    if (isFavorite) {
+      removeFromFavorites(quoteId);
+    } else {
+      addToFavorites(quoteId);
+    }
   };
 
   return (
@@ -200,10 +225,25 @@ export default function DailyBangerCard({
 
       {/* Audio Area */}
       {audioUrl && (
-        <View testID="playArea">
+        <View testID="playArea" style={{ marginBottom: 16 }}>
           <AudioPlayer audioUrl={audioUrl} />
         </View>
       )}
+
+      {/* Action Row */}
+      {!isLocked && (
+        <View style={{ marginTop: audioUrl ? 16 : 0 }}>
+          <ActionRow
+            onShare={() => setShowShareModal(true)}
+            onSave={handleFavorite}
+            onCopy={() => {}} // Copy is handled internally by ActionRow
+            isSaved={isFavorite}
+            banger={banger}
+          />
+        </View>
+      )}
+
+      <ShareModal visible={showShareModal} onClose={() => setShowShareModal(false)} banger={banger} />
     </View>
   );
 }

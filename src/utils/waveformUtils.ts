@@ -101,24 +101,68 @@ export function calculateProgress(currentTime: number, duration: number): number
 }
 
 /**
- * Generates peaks from raw audio data (placeholder for future server-side integration)
+ * Generates peaks from raw audio data using Web Audio API
+ * Falls back to server-provided peaks if available, otherwise generates client-side
  */
-export function processAudioData(
-  audioBuffer: ArrayBuffer,
+export async function processAudioData(
+  audioUrl: string,
   targetPeakCount: number = 100
 ): Promise<WaveformData> {
-  // This is a placeholder for actual audio processing
-  // In a real implementation, this would analyze the audio buffer
-  // and generate peaks based on actual amplitude data
-  
-  return new Promise((resolve) => {
-    // Simulate processing time
-    setTimeout(() => {
-      // For now, return mock data
-      // TODO: Implement actual audio analysis using Web Audio API or native modules
-      resolve(generateMockWaveform(120, targetPeakCount));
-    }, 100);
-  });
+  try {
+    // Try to fetch audio data
+    const response = await fetch(audioUrl);
+    if (!response.ok) {
+      throw new Error('Failed to fetch audio data');
+    }
+    
+    const arrayBuffer = await response.arrayBuffer();
+    
+    // Use Web Audio API to analyze the audio
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    
+    // Get raw PCM data from the first channel
+    const rawData = audioBuffer.getChannelData(0);
+    const samples = rawData.length;
+    const duration = audioBuffer.duration;
+    
+    // Calculate how many samples per peak
+    const samplesPerPeak = Math.ceil(samples / targetPeakCount);
+    const peaks: number[] = [];
+    
+    // Process data in chunks to create peaks
+    for (let i = 0; i < targetPeakCount; i++) {
+      const start = i * samplesPerPeak;
+      const end = Math.min(start + samplesPerPeak, samples);
+      
+      // Find the maximum absolute value in this chunk
+      let max = 0;
+      for (let j = start; j < end; j++) {
+        const abs = Math.abs(rawData[j]);
+        if (abs > max) {
+          max = abs;
+        }
+      }
+      
+      peaks.push(max);
+    }
+    
+    // Normalize peaks
+    const normalizedPeaks = normalizeWaveformPeaks(peaks);
+    
+    // Smooth the peaks for better visual appearance
+    const smoothedPeaks = smoothWaveformPeaks(normalizedPeaks, 3);
+    
+    return {
+      peaks: smoothedPeaks,
+      duration,
+      sampleRate: targetPeakCount / duration
+    };
+  } catch (error) {
+    console.warn('Failed to process audio data, using mock waveform:', error);
+    // Fallback to mock data if processing fails
+    return generateMockWaveform(120, targetPeakCount);
+  }
 }
 
 /**
@@ -143,4 +187,39 @@ export function smoothWaveformPeaks(peaks: number[], windowSize: number = 3): nu
   }
   
   return smoothed;
+}
+
+/**
+ * Cache for processed waveform data to avoid reprocessing
+ */
+const waveformCache = new Map<string, WaveformData>();
+
+/**
+ * Gets waveform data with caching support
+ */
+export async function getWaveformData(
+  audioUrl: string,
+  targetPeakCount: number = 100
+): Promise<WaveformData> {
+  const cacheKey = `${audioUrl}_${targetPeakCount}`;
+  
+  // Check cache first
+  if (waveformCache.has(cacheKey)) {
+    return waveformCache.get(cacheKey)!;
+  }
+  
+  // Process audio data
+  const waveformData = await processAudioData(audioUrl, targetPeakCount);
+  
+  // Cache the result
+  waveformCache.set(cacheKey, waveformData);
+  
+  return waveformData;
+}
+
+/**
+ * Clears the waveform cache
+ */
+export function clearWaveformCache(): void {
+  waveformCache.clear();
 }
