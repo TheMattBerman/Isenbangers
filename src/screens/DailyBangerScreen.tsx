@@ -129,13 +129,13 @@ export default function DailyBangerScreen() {
               className="text-3xl font-bold text-center mb-2"
               style={{
                 color: '#111111',
-                fontSize: 32,
-                fontWeight: 'bold',
+                fontSize: 16,
+                fontWeight: '600',
                 textAlign: 'center',
                 marginBottom: 8,
               }}
             >
-              Today's Banger
+              Today
             </Text>
             <Text 
               className="text-center text-lg"
