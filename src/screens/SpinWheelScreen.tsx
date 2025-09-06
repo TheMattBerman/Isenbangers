@@ -25,10 +25,10 @@ export default function SpinWheelScreen() {
 
 
   const screenW = Dimensions.get("window").width;
-  const wheelSize = Math.min(screenW * 1.35, 520);
-  const viewportH = Math.round(wheelSize * 0.32); // Show only top 32% of wheel
+  const wheelSize = Math.min(screenW * 1.5, 580); // More responsive and larger
+  const viewportH = Math.round(wheelSize * 0.48); // Show 48% of wheel for better visibility
   const pointerOffsetTop = 8; // keep pointer fully visible
-  const wheelLiftPx = 15; // raise wheel ~15px
+  const wheelLiftPx = 0; // Remove wheel lift for closer spacing
 
   return (
     <SafeAreaView 
@@ -48,7 +48,7 @@ export default function SpinWheelScreen() {
           className="flex-1" 
           showsVerticalScrollIndicator={false}
           style={{ flex: 1 }}
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 24, paddingTop: 60 }}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 8, paddingTop: 60 }}
         >
           {/* Header with streak pill */}
           <View 
@@ -196,7 +196,7 @@ export default function SpinWheelScreen() {
 
           {/* Footer with wheel and warm background */}
           <View style={{ 
-            paddingBottom: 32, 
+            paddingBottom: 8, 
             backgroundColor: "#F9F3F0",
             marginHorizontal: -24, 
             paddingHorizontal: 24,
